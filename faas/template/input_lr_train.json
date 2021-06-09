@@ -1,0 +1,8 @@
+{
+  "iot_platform_consumer_host" : "131.159.35.132",
+  "iot_platform_consumer_id" : 1228,
+  "iot_platform_consumer_key" : "Bearer ey...",
+  "model_bucket": "test-model",
+  "model_blob_name": "lr_model.pk"
+}
+
