@@ -7,14 +7,15 @@ from minio import Minio
 from iotlab_lr.lr_model import train
 from iotlab_utils.data_loader import load_data
 
-# TODO
-minioClient = Minio(
-    "x.x.x.x:9000", access_key="AKIAIOSFODNN7EXAMPLE", secret_key="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY", secure=False
-)
-
 
 def main(params):
     try:
+        minio_client = Minio(
+            endpoint="{}:{}".format(params["minio_host"], str(params["minio_port"])),
+            access_key=params["minio_access_key"],
+            secret_key=params["minio_secret_key"],
+            secure=False,
+        )
         data = load_data(
             params["iot_platform_consumer_host"], params["iot_platform_consumer_id"], params["iot_platform_consumer_key"]
         )
@@ -22,7 +23,7 @@ def main(params):
         model = train(data)
         latency = time() - start
         bytes_file = pickle.dumps(model)
-        minioClient.put_object(
+        minio_client.put_object(
             bucket_name=params["model_bucket"],
             object_name=params["model_blob_name"],
             data=io.BytesIO(bytes_file),
@@ -30,7 +31,7 @@ def main(params):
         )
         return {"latency": latency}
     except Exception as e:
-        return {"Error": "Training failed. " + str(e)}
+        return {"Error": "Training failed. Reason: " + str(e)}
 
 
 # copy until here

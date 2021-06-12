@@ -2,6 +2,10 @@
   "iot_platform_consumer_host" : "131.159.35.132",
   "iot_platform_consumer_id" : 1228,
   "iot_platform_consumer_key" : "Bearer ey...",
+  "minio_host" : "10.195.1.242",
+  "minio_port" : 9000,
+  "minio_access_key" : "...",
+  "minio_secret_key" : "...",
   "model_bucket": "test-model",
   "model_blob_name": "lr_model.pk"
 }
