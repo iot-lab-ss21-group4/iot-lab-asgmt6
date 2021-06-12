@@ -4,6 +4,7 @@ services:
   minio:
     image: minio/minio:latest
     hostname: minio
+    container_name: minio
     command: server /export
     environment:
       MINIO_ROOT_USER: "${MINIO_ROOT_USER}"
@@ -14,10 +15,11 @@ services:
       - '9000:9000'
 
   forecaster:
-    image: maxwie/iotlab:edge
+    image: "${DOCKER_ID}/iotlab:edge-forecaster"
+    hostname: forecaster
     container_name: forecaster
-    command: python main_edge.py --settings-file forecaster-configuration/settings.json
+    command: python main.py --settings-file forecaster-configuration/settings.json
     volumes:
-      - ./forecaster-configuration:/forecaster-configuration
+      - "./forecaster-configuration:${CONTAINER_APP_PATH}/forecaster-configuration"
     ports:
       - '443:443'

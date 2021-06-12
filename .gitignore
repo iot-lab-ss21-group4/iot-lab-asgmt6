@@ -220,9 +220,10 @@ fabric.properties
 
 # End of PyCharm/IntelliJ files. From https://gist.github.com/MOOOWOOO/3cf91616c9f3bbc3d1339adfc707b08a
 
-/hyperparams/
-/checkpoints/
-/tensorboard_logs/
-/settings/device_lr.json
-/settings/device_lstm.json
-/settings/device_sarimax.json
+hyperparams/
+checkpoints/
+tensorboard_logs/
+settings/device_lr.json
+settings/device_lstm.json
+settings/device_sarimax.json
+.env.secret
