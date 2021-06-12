@@ -13,4 +13,11 @@ services:
     ports:
       - '9000:9000'
 
-  #add python predictor(s) containers here
+  forecaster:
+    image: maxwie/iotlab:edge
+    container_name: forecaster
+    command: python main_edge.py --settings-file forecaster-configuration/settings.json
+    volumes:
+      - ./forecaster-configuration:/forecaster-configuration
+    ports:
+      - '443:443'

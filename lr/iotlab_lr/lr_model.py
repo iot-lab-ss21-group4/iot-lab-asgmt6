@@ -1,3 +1,5 @@
+import time
+
 import optuna
 import pandas as pd
 from iotlab_utils.data_manager import prepare_data_with_features
@@ -29,8 +31,8 @@ def train(data: pd.DataFrame) -> Lasso:
     return model_fit
 
 
-def prepare_pred_input():
-    pass
+def forecast():
+    ts = time.time()
 
 
 def predict() -> str:

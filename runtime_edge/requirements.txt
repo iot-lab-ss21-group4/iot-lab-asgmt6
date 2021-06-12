@@ -1,0 +1,4 @@
+setuptools
+minio
+optuna
+paho-mqtt
