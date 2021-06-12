@@ -1,8 +1,7 @@
-import json
 import threading
+from typing import Any, Dict, Tuple
 
 import paho.mqtt.client as mqtt
-from typing import Any, Dict
 
 
 class IotPlattformSettings:
@@ -53,7 +52,7 @@ def on_publish(client: mqtt.Client, userdata: Dict[str, Any], rc: int):
     print("MQTT event published. Result code: {}.".format(rc))
 
 
-def setup_publisher(json_data) -> (Publisher, threading.Thread):
+def setup_publisher(json_data) -> Tuple[Publisher, threading.Thread]:
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_disconnect = on_disconnect
