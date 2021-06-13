@@ -34,7 +34,8 @@ class PeriodicForecasterThread(threading.Thread):
             pred_time = int(time.time()) + self.forecast_dt
             # TODO call model and insert predicted number
             self.event_out_q.put((pred_time, 0))
-            time.sleep(self.forecast_period)
+            time.sleep(self._next_forecast_time - time.time())
+            self._next_forecast_time += self.forecast_period
 
 
 class ForecastPublisherThread(threading.Thread):
