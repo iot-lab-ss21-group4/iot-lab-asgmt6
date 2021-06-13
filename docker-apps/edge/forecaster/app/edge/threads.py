@@ -2,10 +2,9 @@ import queue
 import threading
 import time
 
-
 from minio import Minio
 
-from edge.room_count_publisher import Publisher
+from .room_count_publisher import Publisher
 
 
 class PeriodicForecasterThread(threading.Thread):

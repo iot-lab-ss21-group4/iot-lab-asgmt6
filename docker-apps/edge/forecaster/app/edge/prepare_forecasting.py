@@ -1,12 +1,14 @@
 import queue
 import threading
-from typing import List
+from typing import Any, Dict, List
 
-from edge.room_count_publisher import setup_publisher
-from edge.threads import PeriodicForecasterThread, ForecastPublisherThread
+from minio import Minio
+
+from .room_count_publisher import setup_publisher
+from .threads import ForecastPublisherThread, PeriodicForecasterThread
 
 
-def setup_model(data_json, minio_client):
+def setup_model(data_json: Dict[str, Any], minio_client: Minio) -> List[threading.Thread]:
     periodic_forecaster_out_q = queue.Queue()
     periodic_forecaster = PeriodicForecasterThread(
         event_out_q=periodic_forecaster_out_q,
@@ -16,5 +18,4 @@ def setup_model(data_json, minio_client):
     )
     publisher, mqtt_client = setup_publisher(data_json["iot_platform_mqtt_settings"])
     forecast_publisher = ForecastPublisherThread(event_in_q=periodic_forecaster_out_q, publisher=publisher)
-    other_threads: List[threading.Thread] = [periodic_forecaster, mqtt_client]
-    return forecast_publisher, other_threads
+    return [forecast_publisher, periodic_forecaster, mqtt_client]

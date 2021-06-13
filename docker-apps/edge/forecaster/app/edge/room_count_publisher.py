@@ -5,7 +5,7 @@ import paho.mqtt.client as mqtt
 
 
 class IotPlattformSettings:
-    def __init__(self, data):
+    def __init__(self, data: Dict[str, Any]):
         self.iot_platform_gateway_username = data["iot_platform_gateway_username"]
         self.iot_platform_gateway_ip = data["iot_platform_gateway_ip"]
         self.iot_platform_gateway_port = data["iot_platform_gateway_port"]
@@ -52,7 +52,7 @@ def on_publish(client: mqtt.Client, userdata: Dict[str, Any], rc: int):
     print("MQTT event published. Result code: {}.".format(rc))
 
 
-def setup_publisher(json_data) -> Tuple[Publisher, threading.Thread]:
+def setup_publisher(json_data: Dict[str, Any]) -> Tuple[Publisher, threading.Thread]:
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_disconnect = on_disconnect
