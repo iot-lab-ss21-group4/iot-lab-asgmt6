@@ -30,7 +30,7 @@
                 "projectType": "general",
                 "justMyCode": false,
             },
-            "containerName": "forecaster",
+            "containerName": "forecaster-debug",
             "removeContainerAfterDebug": true,
         }
     ]
