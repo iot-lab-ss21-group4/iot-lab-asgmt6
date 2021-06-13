@@ -7,6 +7,19 @@ scroll_open_timeout = "1m"
 consumer_scroll_api_template = "https://{}:443/api/consumers/consume/{}/_search?scroll={}"
 entries_per_request = 1000
 
+consumer_search_api_template = "https://{}:443/api/consumers/consume/{}/_search?size={}"
+search_api_max_entries_per_request = 10000
+
+
+def create_data_frame_from_hits(hits_list, data_range):
+    counts_df = pd.DataFrame(index=data_range, columns=["t", "count"])
+    for i in data_range:
+        timestamp_ms, value = hits_list[i]["_source"]["timestamp"], hits_list[i]["_source"]["value"]
+        # Filter / Change ts values here
+        counts_df.loc[i] = [int(np.round(timestamp_ms / 1000)), value]
+
+    return counts_df
+
 
 def load_data(consumer_host: str, consumer_id: int, consumer_key: str) -> pd.DataFrame:
     """
@@ -57,10 +70,47 @@ def load_data(consumer_host: str, consumer_id: int, consumer_key: str) -> pd.Dat
 
     hits_list = hits["hits"]
     data_range = range(total_hits)
-    counts_df = pd.DataFrame(index=data_range, columns=["t", "count"])
-    for i in data_range:
-        timestamp_ms, value = hits_list[i]["_source"]["timestamp"], hits_list[i]["_source"]["value"]
-        # Filter / Change ts values here
-        counts_df.loc[i] = [int(np.round(timestamp_ms / 1000)), value]
+    return create_data_frame_from_hits(hits_list, data_range)
 
-    return counts_df
+
+def load_latest_data(consumer_host: str, consumer_id: int, consumer_key: str, latest_entries: int) -> pd.DataFrame:
+    """
+    Uses search API to get latest data from an index
+    Args:
+        consumer_host: host of the consumer
+        consumer_id: id of the consumer
+        consumer_key: bearer token of the consumer. Must start with 'Bearer ey'
+        latest_entries: number of latest entries to retrieve
+    Returns: Count and timestamp in a pandas data frame
+
+    """
+    if search_api_max_entries_per_request < latest_entries:
+        raise Exception(
+            "Desired number of latest entries with {} exceeds limit of {} allowed entries for this request.".format(
+                str(latest_entries), str(search_api_max_entries_per_request)
+            )
+        )
+    consumer_search_api_header = {
+        "Authorization": consumer_key,
+        "Content-Type": "application/json",
+        "Connection": "keep-alive",
+    }
+    consumer_search_api = consumer_search_api_template.format(consumer_host, consumer_id, latest_entries)
+    response = requests.get(
+        url=consumer_search_api,
+        headers=consumer_search_api_header,
+        verify=False,
+        data=json.dumps(
+            {
+                "query": {"match_all": {}},
+                "sort": {"timestamp": "desc"},
+            }
+        ),
+    )
+    payload = response.json()
+    hits = payload["body"]["hits"]
+    total_hits = hits["total"]
+    # we must reverse. Maybe there is a way to do this better in the request
+    hits_list = hits["hits"][::-1]
+    data_range = range(len(hits_list))
+    return create_data_frame_from_hits(hits_list, data_range)
