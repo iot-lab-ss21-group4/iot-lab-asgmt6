@@ -31,8 +31,12 @@ class PeriodicForecasterThread(threading.Thread):
 
     def run(self):
         while True:
-            response: urllib3.HTTPResponse = self.minio_client.get_object(self.model_bucket, self.model_blob_name)
-            model_fit = pickle.loads(response.data)
+            try:
+                response: urllib3.HTTPResponse = self.minio_client.get_object(self.model_bucket, self.model_blob_name)
+                model_fit = pickle.loads(response.data)
+            finally:
+                response.close()
+                response.release_conn()
             # Calculate the next prediction time.
             pred_time = int(time.time()) + self.forecast_dt
             # TODO call model and insert predicted number
