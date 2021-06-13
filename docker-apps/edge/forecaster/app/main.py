@@ -4,8 +4,8 @@ import os
 import threading
 from typing import List
 
-from .edge.minio_client import setup_minio_client
-from .edge.prepare_forecasting import setup_model
+from edge.minio_client import setup_minio_client
+from edge.prepare_forecasting import setup_model
 
 
 def setup(args: argparse.Namespace):

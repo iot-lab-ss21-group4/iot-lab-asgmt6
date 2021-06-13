@@ -1,7 +1,9 @@
+import pickle
 import queue
 import threading
 import time
 
+import urllib3
 from minio import Minio
 
 from .room_count_publisher import Publisher
@@ -29,12 +31,13 @@ class PeriodicForecasterThread(threading.Thread):
 
     def run(self):
         while True:
-            model_fit = self.minio_client.get_object(self.model_bucket, self.model_blob_name)
+            response: urllib3.HTTPResponse = self.minio_client.get_object(self.model_bucket, self.model_blob_name)
+            model_fit = pickle.loads(response.data)
             # Calculate the next prediction time.
             pred_time = int(time.time()) + self.forecast_dt
             # TODO call model and insert predicted number
             self.event_out_q.put((pred_time, 0))
-            time.sleep(self._next_forecast_time - time.time())
+            time.sleep(max(0.0, self._next_forecast_time - time.time()))
             self._next_forecast_time += self.forecast_period
 
 

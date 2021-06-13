@@ -5,17 +5,6 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "PowerShell: Build Docker Image",
-            "type": "PowerShell",
-            "request": "launch",
-            "script": "${workspaceFolder}/build-image.ps1",
-            "cwd": "${workspaceFolder}",
-            "args": [
-                "-DockerId",
-                "denizetkar"
-            ]
-        },
-        {
             "name": "Docker: Edge - Forecaster",
             "type": "docker",
             "request": "launch",
@@ -32,6 +21,17 @@
             },
             "containerName": "forecaster-debug",
             "removeContainerAfterDebug": true,
+        },
+        {
+            "name": "PowerShell: Build Docker Image",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "${workspaceFolder}/build-image.ps1",
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "-DockerId",
+                "denizetkar"
+            ]
         }
     ]
 }

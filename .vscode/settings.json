@@ -1,0 +1,5 @@
+{
+    "python.analysis.extraPaths": [
+        "docker-apps/edge/forecaster/app"
+    ]
+}
