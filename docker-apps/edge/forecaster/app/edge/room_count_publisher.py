@@ -48,12 +48,12 @@ def on_publish(client: mqtt.Client, userdata: None, rc: int):
     print("MQTT event published. Result code: {}.".format(rc))
 
 
-def setup_publisher(json_data: Dict[str, Any]) -> Tuple[Publisher, threading.Thread]:
+def setup_publisher(config: Dict[str, Any]) -> Tuple[Publisher, threading.Thread]:
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_disconnect = on_disconnect
     client.on_publish = on_publish
-    settings = IotPlattformSettings(json_data)
+    settings = IotPlattformSettings(config)
     mqtt_topic = str(settings.iot_platform_user_id) + "_" + str(settings.iot_platform_device_id)
     publisher = Publisher(
         client,
