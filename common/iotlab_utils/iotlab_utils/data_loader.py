@@ -29,7 +29,13 @@ def load_data(consumer_host: str, consumer_id: int, consumer_key: str) -> pd.Dat
         url=consumer_scroll_api,
         headers=consumer_scroll_api_header,
         verify=False,
-        data=json.dumps({"size": entries_per_request, "query": {"match_all": {}}}),
+        data=json.dumps(
+            {
+                "size": entries_per_request,
+                "query": {"match_all": {}},
+                "sort": {"timestamp": "asc"},
+            }
+        ),
     )
     payload = response.json()
     scroll_id = payload["body"]["_scroll_id"]
