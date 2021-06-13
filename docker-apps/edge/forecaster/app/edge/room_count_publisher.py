@@ -33,22 +33,18 @@ class Publisher:
             + "}"
         )
         print("Publishing '{}' on topic '{}'".format(message, self.topic))
-        self.client.publish(self.topic, message)
+        self.client.publish(self.topic, message, qos=2)
 
 
-def on_connect(client: mqtt.Client, userdata: Dict[str, Any], flags: Dict[str, int], rc: int):
+def on_connect(client: mqtt.Client, userdata: None, flags: Dict[str, int], rc: int):
     print("Connected. Result code " + str(rc))
-    if not userdata["is_connected"]:
-        userdata["is_connected"] = True
 
 
-def on_disconnect(client: mqtt.Client, userdata: Dict[str, Any], rc: int):
+def on_disconnect(client: mqtt.Client, userdata: None, rc: int):
     print("Disconnected. Result code " + str(rc))
-    if userdata["is_connected"]:
-        userdata["is_connected"] = False
 
 
-def on_publish(client: mqtt.Client, userdata: Dict[str, Any], rc: int):
+def on_publish(client: mqtt.Client, userdata: None, rc: int):
     print("MQTT event published. Result code: {}.".format(rc))
 
 
@@ -66,10 +62,6 @@ def setup_publisher(json_data: Dict[str, Any]) -> Tuple[Publisher, threading.Thr
         settings.iot_platform_sensor_name,
         settings.iot_platform_device_id,
     )
-    user_data = {
-        "is_connected": False,
-    }
-    client.user_data_set(user_data)
     client.username_pw_set(settings.iot_platform_gateway_username, settings.iot_platform_gateway_password)
     client.connect(settings.iot_platform_gateway_ip, port=settings.iot_platform_gateway_port)
     mqtt_client = threading.Thread(target=client.loop_forever)
