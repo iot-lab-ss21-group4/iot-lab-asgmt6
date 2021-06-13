@@ -226,4 +226,4 @@ tensorboard_logs/
 settings/device_lr.json
 settings/device_lstm.json
 settings/device_sarimax.json
-.env.secret
+.env.secret*
