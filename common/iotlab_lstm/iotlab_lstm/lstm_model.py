@@ -156,5 +156,6 @@ def train(data: pd.DataFrame, config):
         for train_batch in dataloader:
             loss = model.general_step(train_batch)
             model.optimize(loss)
-    model.plot_after_train(data)
+    if config["plot_after_train"]:
+        model.plot_after_train(data)
     return model

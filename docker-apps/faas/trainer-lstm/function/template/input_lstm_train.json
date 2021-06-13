@@ -16,7 +16,8 @@
     "lr": 0.0001,
     "batch_size": 32,
     "seq_len": 24,
-    "n_epochs": 20
+    "n_epochs": 20,
+    "plot_after_train": false
   }
 }
 
