@@ -12,8 +12,26 @@
             "cwd": "${workspaceFolder}",
             "args": [
                 "-DockerId",
-                "denizetkar",
+                "denizetkar"
             ]
+        },
+        {
+            "name": "Docker: Edge - Forecaster",
+            "type": "docker",
+            "request": "launch",
+            "preLaunchTask": "docker-run: debug-edge-forecaster",
+            "python": {
+                "pathMappings": [
+                    {
+                        "localRoot": "${workspaceFolder}/docker-apps/edge/forecaster/app",
+                        "remoteRoot": "/app"
+                    }
+                ],
+                "projectType": "general",
+                "justMyCode": false,
+            },
+            "containerName": "forecaster",
+            "removeContainerAfterDebug": true,
         }
     ]
 }

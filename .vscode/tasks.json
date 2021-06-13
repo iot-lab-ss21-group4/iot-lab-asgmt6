@@ -1,0 +1,46 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "docker-build",
+			"label": "docker-build-edge-forecaster",
+			"platform": "python",
+			"dockerBuild": {
+				"tag": "iotlab:edge-forecaster",
+				"dockerfile": "${workspaceFolder}/docker-apps/edge/forecaster/Dockerfile",
+				"context": "${workspaceFolder}",
+				"pull": true
+			}
+		},
+		{
+			"type": "docker-run",
+			"label": "docker-run: debug-edge-forecaster",
+			"dependsOn": [
+				"docker-build-edge-forecaster"
+			],
+			"dockerRun": {
+				"image": "iotlab:edge-forecaster",
+				// "command": "python main.py --settings-file forecaster-configuration/settings.json",
+				"containerName": "forecaster",
+				"volumes": [
+					{
+						"localPath": "${workspaceFolder}/forecaster-configuration",
+						"containerPath": "${env:CONTAINER_APP_PATH}/forecaster-configuration"
+					},
+				],
+			},
+			"python": {
+				"file": "${workspaceFolder}/docker-apps/edge/forecaster/app/main.py",
+				"args": [
+					"--settings-file",
+					"forecaster-configuration/settings.json",
+				]
+			}
+		}
+	],
+	"options": {
+		"env": {
+			"CONTAINER_APP_PATH": "/app",
+		}
+	}
+}
