@@ -1,16 +1,19 @@
 param(
     [string] $DeploymentType = "edge",
     [string] $AppName = "forecaster",
-    [string] $EnvFilePath = ".env.secret.edge.forecaster",
+    # ".env.secret.edge.forecaster"
+    [string] $EnvFilePath = "",
     [Parameter(Mandatory = $true)] [string] $DockerId
 )
 
-# Load the build arguments for 'docker build' and the corresponding Dockerfile
-$build_args = Get-Content -Raw -Path $EnvFilePath | ConvertFrom-StringData
-# Convert all keys to lowercase letters before adding as a build argument
 $build_arg_str = ""
-foreach ($key in $build_args.PSBase.Keys) {
-    $build_arg_str += " --build-arg $($key.ToString().ToLowerInvariant())=$($build_args[$key])"
+if (!$EnvFilePath -eq "") {
+    # Load the build arguments for 'docker build' and the corresponding Dockerfile
+    $build_args = Get-Content -Raw -Path $EnvFilePath | ConvertFrom-StringData
+    # Convert all keys to lowercase letters before adding as a build argument
+    foreach ($key in $build_args.PSBase.Keys) {
+        $build_arg_str += " --build-arg $($key.ToString().ToLowerInvariant())=$($build_args[$key])"
+    }
 }
 
 $dockerfile_path = "docker-apps/${DeploymentType}/${AppName}/Dockerfile"
