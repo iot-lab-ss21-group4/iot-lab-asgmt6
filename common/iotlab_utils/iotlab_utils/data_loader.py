@@ -5,7 +5,7 @@ import requests as requests
 
 scroll_open_timeout = "1m"
 consumer_scroll_api_template = "https://{}:443/api/consumers/consume/{}/_search?scroll={}"
-entries_per_request = 1000
+entries_per_request = 10000
 
 consumer_search_api_template = "https://{}:443/api/consumers/consume/{}/_search?size={}"
 search_api_max_entries_per_request = 10000
