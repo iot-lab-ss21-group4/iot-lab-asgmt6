@@ -38,9 +38,11 @@ def index_from_time_column(ts: pd.DataFrame, freq: Optional[pd.Timedelta] = None
 #         extra_columns.extend(["minute_of_hour", "minute_of_day"])
 #     return UNIVARIATE_DATA_COLUMN, extra_columns, ts
 
+
 def prepare_data(ts: pd.DataFrame) -> Tuple[str, pd.DataFrame]:
     ts.drop_duplicates(subset=TIME_COLUMN, inplace=True)
     return UNIVARIATE_DATA_COLUMN, ts
+
 
 def extract_features(
     ts: pd.DataFrame,
@@ -106,6 +108,7 @@ def prepare_data_with_features(
 ) -> Tuple[str, List[str], pd.DataFrame, int]:
     y_column, ts = prepare_data(data)
     ts[y_column] = ts[y_column].astype(DEFAULT_FLOAT_TYPE)
+    ts[TIME_COLUMN] = ts[TIME_COLUMN].astype(np.int64)
     x_columns, ts, useless_rows = extract_features(
         ts, y_column, seasonality_features, detailed_seasonality, extra_features, lag_order=lag_order
     )

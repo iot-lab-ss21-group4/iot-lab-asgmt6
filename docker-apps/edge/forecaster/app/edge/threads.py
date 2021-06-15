@@ -19,7 +19,7 @@ class PeriodicForecasterThread(threading.Thread):
         minio_client: Minio,
         model_bucket: str,
         model_blob_name: str,
-        forecast_period: int = 300,
+        forecast_period: int = 900,
         forecast_dt: int = 900,
     ):
         super().__init__()
