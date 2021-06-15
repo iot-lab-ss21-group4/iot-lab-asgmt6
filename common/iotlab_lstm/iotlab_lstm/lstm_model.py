@@ -7,6 +7,7 @@ from iotlab_utils.data_manager import prepare_data_with_features
 from sklearn.preprocessing import MinMaxScaler
 from torch.utils.data import Dataset, DataLoader
 
+
 class TimeseriesDataset(Dataset):
     def __init__(self, X: np.ndarray, y: np.ndarray, seq_len: int = 1):
         self.X = torch.tensor(X).float()

@@ -1,12 +1,16 @@
 import optuna
 import pandas as pd
-from iotlab_utils.data_manager import prepare_data_with_features, DEFAULT_LAG_ORDER, LAG_FEATURE_TEMPLATE, \
-    DERIVATIVE_COLUMN, TIME_COLUMN
+from iotlab_utils.data_manager import (
+    prepare_data_with_features,
+    DEFAULT_LAG_ORDER,
+    LAG_FEATURE_TEMPLATE,
+    DERIVATIVE_COLUMN,
+    TIME_COLUMN,
+)
 from sklearn.linear_model import Lasso
 
 
-class LrWrapper():
-
+class LrWrapper:
     def __init__(self, model: Lasso):
         self.model = model
 

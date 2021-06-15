@@ -52,10 +52,7 @@ class PeriodicForecasterThread(threading.Thread):
 
             # Calculate the next prediction time.
             pred_time = int(time.time()) + self.forecast_dt
-            latest_data = latest_data.append(
-                {TIME_COLUMN: pred_time},
-                ignore_index=True
-            )
+            latest_data = latest_data.append({TIME_COLUMN: pred_time}, ignore_index=True)
             latest_data = model_fit.forecast(latest_data)
             latest_data_row = latest_data.iloc[-1:]
             forecast_value = int(latest_data_row.iloc[0]["count"])
