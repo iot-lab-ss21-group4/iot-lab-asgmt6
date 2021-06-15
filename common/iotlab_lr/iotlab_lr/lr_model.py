@@ -16,6 +16,7 @@ class LrWrapper:
 
     @property
     def look_back_length(self):
+        # TODO: make this more configurable. LAG order depends on training
         return DEFAULT_LAG_ORDER
 
     def forecast(self, ts: pd.DataFrame) -> pd.DataFrame:
