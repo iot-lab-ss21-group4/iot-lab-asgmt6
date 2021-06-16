@@ -1,0 +1,14 @@
+pandas
+statsmodels
+optuna
+numpy
+sklearn
+scipy
+matplotlib
+torch
+pytorch-lightning
+black
+paho-mqtt
+minio
+setuptools
+kafka-python
