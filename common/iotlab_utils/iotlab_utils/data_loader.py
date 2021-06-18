@@ -1,5 +1,7 @@
-import numpy as np
 import json
+from typing import Any, Dict, Iterable, List
+
+import numpy as np
 import pandas as pd
 import requests as requests
 
@@ -11,7 +13,7 @@ consumer_search_api_template = "https://{}:443/api/consumers/consume/{}/_search?
 search_api_max_entries_per_request = 10000
 
 
-def create_data_frame_from_hits(hits_list, data_range):
+def create_data_frame_from_hits(hits_list: List[Dict[str, Any]], data_range: Iterable[int]) -> pd.DataFrame:
     counts_df = pd.DataFrame(index=data_range, columns=["t", "count"])
     for i in data_range:
         timestamp_ms, value = hits_list[i]["_source"]["timestamp"], hits_list[i]["_source"]["value"]
@@ -109,7 +111,6 @@ def load_latest_data(consumer_host: str, consumer_id: int, consumer_key: str, la
     )
     payload = response.json()
     hits = payload["body"]["hits"]
-    total_hits = hits["total"]
     # we must reverse. Maybe there is a way to do this better in the request
     hits_list = hits["hits"][::-1]
     data_range = range(len(hits_list))

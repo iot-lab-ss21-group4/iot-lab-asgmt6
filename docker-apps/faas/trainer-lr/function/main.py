@@ -2,13 +2,14 @@ import io
 import json
 import pickle
 from time import time
+from typing import Any, Dict
 
-from minio import Minio
 from iotlab_lr.lr_model import train
 from iotlab_utils.data_loader import load_data
+from minio import Minio
 
 
-def main(params):
+def main(params: Dict[str, Any]):
     try:
         minio_client = Minio(
             endpoint="{}:{}".format(params["minio_host"], str(params["minio_port"])),
@@ -23,6 +24,7 @@ def main(params):
         start = time()
         model = train(data)
         latency = time() - start
+        # TODO: Pick the latest available pickle protocol version for ibmfunctions/action-python-v3.7:latest
         bytes_file = pickle.dumps(model)
         minio_client.put_object(
             bucket_name=params["model_bucket"],
