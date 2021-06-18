@@ -1,0 +1,6 @@
+setuptools
+minio
+optuna
+paho-mqtt
+torch
+kafka-python

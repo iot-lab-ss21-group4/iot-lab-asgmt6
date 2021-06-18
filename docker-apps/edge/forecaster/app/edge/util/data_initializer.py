@@ -14,5 +14,8 @@ class DataInitializer:
             return pd.DataFrame(columns=[TIME_COLUMN, UNIVARIATE_DATA_COLUMN])
 
         return load_latest_data(
-            self.iot_platform_consumer_host, self.iot_platform_consumer_id, self.iot_platform_consumer_key, look_back_length
+            self.iot_platform_consumer_host,
+            self.iot_platform_consumer_id,
+            self.iot_platform_consumer_key,
+            look_back_length,
         )

@@ -4,7 +4,7 @@ from typing import Any, Dict, Tuple
 import paho.mqtt.client as mqtt
 
 
-class IotPlattformSettings:
+class IotPlatformSettings:
     def __init__(self, data: Dict[str, Any]):
         self.iot_platform_gateway_username = data["iot_platform_gateway_username"]
         self.iot_platform_gateway_ip = data["iot_platform_gateway_ip"]
@@ -16,19 +16,22 @@ class IotPlattformSettings:
         self.iot_platform_gateway_password = data["iot_platform_gateway_password"]
 
 
-class Publisher:
-    def __init__(self, client: mqtt.Client, topic: str, username: str, sensor_name: str, device_id: int):
+class IotPlatformPublisher:
+    def __init__(self, client: mqtt.Client, topic: str, username: str, device_id: int):
         self.client = client
         self.topic = topic
         self.username = username
-        self.sensor_name = sensor_name
         self.device_id = device_id
 
-    def publish(self, timestamp: int, count: int):
+    def publish(self, sensor_name: str, timestamp: int, count: int):
         message = (
             "{"
             + '"username":"{}","{}":{},"device_id":{},"timestamp":{}'.format(
-                self.username, self.sensor_name, str(count), str(self.device_id), str(timestamp)
+                self.username,
+                sensor_name,
+                str(count),
+                str(self.device_id),
+                str(timestamp),
             )
             + "}"
         )
@@ -48,18 +51,17 @@ def on_publish(client: mqtt.Client, userdata: None, rc: int):
     print("MQTT event published. Result code: {}.".format(rc))
 
 
-def setup_publisher(config: Dict[str, Any]) -> Tuple[Publisher, threading.Thread]:
+def setup_publisher(config: Dict[str, Any]) -> Tuple[IotPlatformPublisher, threading.Thread]:
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_disconnect = on_disconnect
     client.on_publish = on_publish
-    settings = IotPlattformSettings(config)
+    settings = IotPlatformSettings(config)
     mqtt_topic = str(settings.iot_platform_user_id) + "_" + str(settings.iot_platform_device_id)
-    publisher = Publisher(
+    publisher = IotPlatformPublisher(
         client,
         mqtt_topic,
         settings.iot_platform_group_name,
-        settings.iot_platform_sensor_name,
         settings.iot_platform_device_id,
     )
     client.username_pw_set(settings.iot_platform_gateway_username, settings.iot_platform_gateway_password)
