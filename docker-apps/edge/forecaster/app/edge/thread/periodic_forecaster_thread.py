@@ -70,7 +70,7 @@ class PeriodicForecasterThread(threading.Thread):
             # TODO: compute accuracies and publish results
             # TODO: remove oldest forecast element if evaluation was possible
             for acc_metric in self.accuracy_metrics_sensors:
-                pass
+                self.accuracy_results_out_q.put((pred_time, forecast_value, acc_metric))
             latest_forecasts.popleft()
 
             # Remove oldest sequence element

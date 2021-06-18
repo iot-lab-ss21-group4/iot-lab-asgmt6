@@ -20,7 +20,8 @@ class BestOnlineForecasterThread(threading.Thread):
         self.event_in_q = event_in_q
         self.publisher = publisher
         self.message_producer = message_producer
-        self.number_of_accuracy_values = number_of_models
+        # TODO: 6 because there are six different metrics in slides but should be refactored
+        self.number_of_accuracy_values = number_of_models * 6
 
     def run(self):
         results = []

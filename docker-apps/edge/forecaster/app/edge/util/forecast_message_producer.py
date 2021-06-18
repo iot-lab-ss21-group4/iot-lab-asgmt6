@@ -14,4 +14,5 @@ class ForecastMessageProducer:
         self.topic_name = config["message_broker_topic_name"]
 
     def produce(self, count: int):
+        print("Send count {} to topic {}.".format(count, self.topic_name))
         self.producer.send(self.topic_name, FORECAST_MSG.format(count).encode("UTF-8"))
