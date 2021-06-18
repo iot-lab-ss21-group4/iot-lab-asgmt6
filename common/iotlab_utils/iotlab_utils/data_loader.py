@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 import requests as requests
 
+from .data_manager import TIME_COLUMN, UNIVARIATE_DATA_COLUMN
+
 scroll_open_timeout = "1m"
 consumer_scroll_api_template = "https://{}:443/api/consumers/consume/{}/_search?scroll={}"
 entries_per_request = 10000
@@ -14,7 +16,7 @@ search_api_max_entries_per_request = 10000
 
 
 def create_data_frame_from_hits(hits_list: List[Dict[str, Any]], data_range: Iterable[int]) -> pd.DataFrame:
-    counts_df = pd.DataFrame(index=data_range, columns=["t", "count"])
+    counts_df = pd.DataFrame(index=data_range, columns=[TIME_COLUMN, UNIVARIATE_DATA_COLUMN])
     for i in data_range:
         timestamp_ms, value = hits_list[i]["_source"]["timestamp"], hits_list[i]["_source"]["value"]
         # Filter / Change ts values here

@@ -2,13 +2,14 @@ import io
 import json
 import pickle
 from time import time
+from typing import Any, Dict
 
 from iotlab_lstm.lstm_model import train
 from iotlab_utils.data_loader import load_data
 from minio import Minio
 
 
-def main(params):
+def main(params: Dict[str, Any]):
     try:
         minio_client = Minio(
             endpoint="{}:{}".format(params["minio_host"], str(params["minio_port"])),

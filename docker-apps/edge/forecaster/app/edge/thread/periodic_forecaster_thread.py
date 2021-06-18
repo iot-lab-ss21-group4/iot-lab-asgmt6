@@ -4,10 +4,9 @@ import threading
 from collections import deque
 
 import urllib3
+from edge.util.data_initializer import DataInitializer
 from iotlab_utils.data_manager import TIME_COLUMN
 from minio import Minio
-
-from edge.util.data_initializer import DataInitializer
 
 
 class PeriodicForecasterThread(threading.Thread):
@@ -36,7 +35,7 @@ class PeriodicForecasterThread(threading.Thread):
 
     def run(self):
         sequence_length = 0
-        latest_data = None
+        latest_data, y_column = None, None
         latest_forecasts = deque([])
         while True:
 
@@ -52,13 +51,13 @@ class PeriodicForecasterThread(threading.Thread):
             # Initialize data
             if latest_data is None or model_fit.look_back_length != sequence_length:
                 sequence_length = model_fit.look_back_length
-                latest_data = self.data_initializer.initialize_data(sequence_length)
+                latest_data, y_column = self.data_initializer.initialize_data(sequence_length)
 
             # Calculate the next prediction time.
             latest_data = latest_data.append({TIME_COLUMN: pred_time}, ignore_index=True)
             latest_data = model_fit.forecast(latest_data)
             latest_data_row = latest_data.iloc[-1:]
-            forecast_value = int(latest_data_row.iloc[0]["count"])
+            forecast_value = int(latest_data_row.iloc[0][y_column])
 
             latest_forecasts.append((pred_time, forecast_value))
 
