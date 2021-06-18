@@ -22,6 +22,7 @@ def setup(args: argparse.Namespace):
 
     all_threads: List[threading.Thread] = []
 
+    # TODO: waiting for answer on moodle
     # create singleton mqtt publisher
     # under the assumption that one device (topic: username_deviceId) is sufficient
     mqtt_publisher, mqtt_client = setup_publisher(settings["iot_platform_mqtt_settings"])
@@ -47,13 +48,13 @@ def setup(args: argparse.Namespace):
             periodic_forecaster_in_q,
             acuraccy_results_out_q,
         )
-        for thread in model_threads:
-            thread.start()
         all_threads.extend(model_threads)
 
     timer_thread = TimerThread(event_out_qs=periodic_forecaster_in_qs)
-    timer_thread.start()
     all_threads.append(timer_thread)
+
+    for thread in all_threads:
+        thread.start()
 
     for thread in all_threads:
         thread.join()

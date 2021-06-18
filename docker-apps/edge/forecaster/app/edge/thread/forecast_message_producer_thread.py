@@ -1,7 +1,7 @@
 import queue
 import threading
 
-from .forecast_message_producer import ForecastMessageProducer
+from edge.util.forecast_message_producer import ForecastMessageProducer
 
 
 class ForecastMessageProducerThread(threading.Thread):
