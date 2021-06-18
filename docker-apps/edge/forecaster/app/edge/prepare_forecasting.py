@@ -7,7 +7,7 @@ from minio import Minio
 from edge.thread.forecast_publisher_thread import ForecastPublisherThread
 from edge.thread.periodic_forecaster_thread import PeriodicForecasterThread
 from edge.util.data_initializer import DataInitializer
-from edge.util.room_count_publisher import setup_publisher, IotPlatformPublisher
+from edge.util.room_count_publisher import IotPlatformPublisher
 
 
 def setup_model(

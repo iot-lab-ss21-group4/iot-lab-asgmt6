@@ -3,7 +3,7 @@ import json
 import os
 import queue
 import threading
-from typing import List
+from typing import Any, Dict, List
 
 from edge.minio_client import setup_minio_client
 from edge.prepare_forecasting import setup_model
@@ -15,7 +15,7 @@ from edge.util.room_count_publisher import setup_publisher
 
 def setup(args: argparse.Namespace):
     with open(args.settings_file, "rt") as f:
-        settings = json.load(f)
+        settings: Dict[str, Any] = json.load(f)
 
     minio_client = setup_minio_client(settings["minio_settings"])
     forecast_messages_producer = ForecastMessageProducer(settings["message_broker_settings"])
@@ -25,8 +25,8 @@ def setup(args: argparse.Namespace):
     # TODO: waiting for answer on moodle
     # create singleton mqtt publisher
     # under the assumption that one device (topic: username_deviceId) is sufficient
-    mqtt_publisher, mqtt_client = setup_publisher(settings["iot_platform_mqtt_settings"])
-    all_threads.append(mqtt_client)
+    mqtt_publisher, mqtt_thread = setup_publisher(settings["iot_platform_mqtt_settings"])
+    all_threads.append(mqtt_thread)
 
     acuraccy_results_out_q = queue.Queue()
     best_online_forecaster_thread = BestOnlineForecasterThread(

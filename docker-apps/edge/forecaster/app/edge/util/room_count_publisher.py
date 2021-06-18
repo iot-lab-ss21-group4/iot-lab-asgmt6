@@ -66,5 +66,5 @@ def setup_publisher(config: Dict[str, Any]) -> Tuple[IotPlatformPublisher, threa
     )
     client.username_pw_set(settings.iot_platform_gateway_username, settings.iot_platform_gateway_password)
     client.connect(settings.iot_platform_gateway_ip, port=settings.iot_platform_gateway_port)
-    mqtt_client = threading.Thread(target=client.loop_forever)
-    return publisher, mqtt_client
+    mqtt_thread = threading.Thread(target=client.loop_forever)
+    return publisher, mqtt_thread

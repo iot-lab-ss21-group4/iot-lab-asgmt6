@@ -4,6 +4,8 @@ from queue import Queue
 from edge.util.forecast_message_producer import ForecastMessageProducer
 from edge.util.room_count_publisher import IotPlatformPublisher
 
+from .periodic_forecaster_thread import PeriodicForecasterThread
+
 
 class BestOnlineForecasterThread(threading.Thread):
 
@@ -20,8 +22,7 @@ class BestOnlineForecasterThread(threading.Thread):
         self.event_in_q = event_in_q
         self.publisher = publisher
         self.message_producer = message_producer
-        # TODO: 6 because there are six different metrics in slides but should be refactored
-        self.number_of_accuracy_values = number_of_models * 6
+        self.number_of_accuracy_values = number_of_models * len(PeriodicForecasterThread.accuracy_metrics_sensors)
 
     def run(self):
         results = []
