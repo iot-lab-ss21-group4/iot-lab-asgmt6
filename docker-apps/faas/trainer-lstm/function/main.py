@@ -23,6 +23,7 @@ def main(params):
         start = time()
         model = train(data, params["model_config"])
         latency = time() - start
+        # TODO: Pick the latest available pickle protocol version for ibmfunctions/action-python-v3.7:latest
         bytes_file = pickle.dumps(model)
         minio_client.put_object(
             bucket_name=params["model_bucket"],

@@ -116,7 +116,7 @@ def prepare_data_with_features(
     return y_column, x_columns, ts, useless_rows
 
 
-def regularize_data(ts: pd.DataFrame, y_column: str) -> Tuple[pd.offsets.Nano, pd.DataFrame]:
+def regularize_data(ts: pd.DataFrame, y_column: str) -> Tuple[pd.offsets.DateOffset, pd.DataFrame]:
     if ts.shape[0] <= 1:
         return ts
     avg_dt = (

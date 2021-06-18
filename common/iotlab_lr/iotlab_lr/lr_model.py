@@ -16,7 +16,7 @@ class LrWrapper:
         self.lag_order = lag_order
 
     @property
-    def look_back_length(self):
+    def look_back_length(self) -> int:
         return self.lag_order
 
     def forecast(self, ts: pd.DataFrame) -> pd.DataFrame:

@@ -1,31 +1,32 @@
 import threading
+from typing import List
 
 import numpy as np
 import optuna
 import pandas as pd
 from iotlab_utils.data_manager import (
+    DEFAULT_FLOAT_TYPE,
     TIME_COLUMN,
     extract_features,
     prepare_data_with_features,
     regularize_data,
-    DEFAULT_FLOAT_TYPE,
 )
 from scipy.interpolate import interp1d
 from sklearn.metrics import mean_squared_error
-from statsmodels.tsa.statespace.sarimax import SARIMAX
+from statsmodels.tsa.statespace.sarimax import SARIMAX, SARIMAXResultsWrapper
 
 # TODO
 # LAG and number of elements in times might not work together if times list is too small
 
 
 class SARIMAXWrapper:
-    def __init__(self, model, avg_dt, exog_columns):
+    def __init__(self, model: SARIMAXResultsWrapper, avg_dt: pd.DateOffset, exog_columns: List[str]):
         self.model = model
         self.avg_dt = avg_dt
         self.exog_columns = exog_columns
 
     @property
-    def look_back_length(self):
+    def look_back_length(self) -> int:
         return 1
 
     def forecast(self, ts: pd.DataFrame) -> pd.DataFrame:
