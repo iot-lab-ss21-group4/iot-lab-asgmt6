@@ -33,5 +33,5 @@ class BestOnlineForecasterThread(threading.Thread):
                 # TODO: Find best y using strategy - model independent
                 t, best_y, _ = results[0]
                 self.publisher.publish(self.sensor_name, t, best_y)
-                self.kafka_count_publisher.produce(best_y)
+                self.kafka_count_publisher.publish(best_y)
                 results.clear()

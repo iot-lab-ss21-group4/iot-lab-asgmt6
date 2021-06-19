@@ -17,4 +17,4 @@ class KafkaCountPublisherThread(threading.Thread):
     def run(self):
         while True:
             _, y = self.event_in_q.get()
-            self.kafka_count_publisher.produce(y)
+            self.kafka_count_publisher.publish(y)
