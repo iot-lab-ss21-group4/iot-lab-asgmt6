@@ -24,8 +24,8 @@ def main(params: Dict[str, Any]):
         start = time()
         model = train(data)
         latency = time() - start
-        # TODO: Pick the latest available pickle protocol version for ibmfunctions/action-python-v3.7:latest
-        bytes_file = pickle.dumps(model)
+        # Pick the latest available pickle protocol version for ibmfunctions/action-python-v3.7:latest
+        bytes_file = pickle.dumps(model, protocol=4)
         minio_client.put_object(
             bucket_name=params["model_bucket"],
             object_name=params["model_blob_name"],
