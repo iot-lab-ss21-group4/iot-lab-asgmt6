@@ -1,11 +1,11 @@
 import queue
 import threading
 
-from edge.util.room_count_publisher import IotPlatformPublisher
+from edge.util.room_count_publisher import PlatformSensorPublisher
 
 
 class ForecastPublisherThread(threading.Thread):
-    def __init__(self, event_in_q: queue.Queue, publisher: IotPlatformPublisher):
+    def __init__(self, event_in_q: queue.Queue, publisher: PlatformSensorPublisher):
         super().__init__()
         self.event_in_q = event_in_q
         self.publisher = publisher

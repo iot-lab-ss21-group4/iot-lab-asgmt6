@@ -2,7 +2,7 @@ import threading
 from queue import Queue
 
 from edge.util.kafka_count_publisher import KafkaCountPublisher
-from edge.util.room_count_publisher import IotPlatformPublisher
+from edge.util.room_count_publisher import PlatformSensorPublisher
 
 from .periodic_forecaster_thread import ForecasterThread
 
@@ -14,7 +14,7 @@ class BestOnlineForecasterThread(threading.Thread):
     def __init__(
         self,
         event_in_q: Queue,
-        publisher: IotPlatformPublisher,
+        publisher: PlatformSensorPublisher,
         kafka_count_publisher: KafkaCountPublisher,
         number_of_models: int,
     ):

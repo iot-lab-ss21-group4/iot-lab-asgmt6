@@ -16,7 +16,7 @@ class IotPlatformSettings:
         self.iot_platform_gateway_password = data["iot_platform_gateway_password"]
 
 
-class IotPlatformPublisher:
+class PlatformSensorPublisher:
     def __init__(self, client: mqtt.Client, topic: str, username: str, device_id: int):
         self.client = client
         self.topic = topic
@@ -51,14 +51,14 @@ def on_publish(client: mqtt.Client, userdata: None, rc: int):
     print("MQTT event published. Result code: {}.".format(rc))
 
 
-def setup_publisher(config: Dict[str, Any]) -> Tuple[IotPlatformPublisher, threading.Thread]:
+def setup_publisher(config: Dict[str, Any]) -> Tuple[PlatformSensorPublisher, threading.Thread]:
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_disconnect = on_disconnect
     client.on_publish = on_publish
     settings = IotPlatformSettings(config)
     mqtt_topic = str(settings.iot_platform_user_id) + "_" + str(settings.iot_platform_device_id)
-    publisher = IotPlatformPublisher(
+    publisher = PlatformSensorPublisher(
         client,
         mqtt_topic,
         settings.iot_platform_group_name,

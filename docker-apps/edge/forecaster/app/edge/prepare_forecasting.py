@@ -7,13 +7,13 @@ from minio import Minio
 from edge.thread.forecast_publisher_thread import ForecastPublisherThread
 from edge.thread.periodic_forecaster_thread import ForecasterThread
 from edge.util.data_initializer import DataInitializer
-from edge.util.room_count_publisher import IotPlatformPublisher
+from edge.util.room_count_publisher import PlatformSensorPublisher
 
 
 def setup_model(
     config: Dict[str, Any],
     minio_client: Minio,
-    publisher: IotPlatformPublisher,
+    publisher: PlatformSensorPublisher,
     periodic_forecaster_in_q: queue.Queue,
     accuracy_results_out_q: queue.Queue,
 ) -> List[threading.Thread]:
