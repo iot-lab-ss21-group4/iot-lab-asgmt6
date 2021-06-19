@@ -16,6 +16,7 @@ class ForecasterThread(threading.Thread):
 
     def __init__(
         self,
+        model_type: str,
         event_in_q: queue.Queue,
         event_out_q: queue.Queue,
         accuracy_results_out_q: queue.Queue,
@@ -25,6 +26,7 @@ class ForecasterThread(threading.Thread):
         model_blob_name: str,
     ):
         super().__init__()
+        self.model_type = model_type
         self.event_in_q = event_in_q
         self.event_out_q = event_out_q
         self.accuracy_results_out_q = accuracy_results_out_q
@@ -63,7 +65,7 @@ class ForecasterThread(threading.Thread):
             latest_forecasts.append((pred_time, forecast_value))
 
             # publish forecast result
-            self.event_out_q.put((pred_time, forecast_value, ForecasterThread.SENSOR_NAME))
+            self.event_out_q.put((pred_time, forecast_value, ForecasterThread.SENSOR_NAME + self.model_type.upper()))
 
             # TODO: check if accuracy computation (online evaluation) is possible
             # TODO: how to get newest observation? continuous polling?

@@ -20,6 +20,7 @@ def setup_model(
     forecaster_out_q = queue.Queue()
     data_initializer = DataInitializer(config["iot_platform_consumer_settings"])
     forecaster_thread = ForecasterThread(
+        model_type=config["type"],
         event_in_q=forecaster_in_q,
         event_out_q=forecaster_out_q,
         accuracy_results_out_q=accuracy_results_out_q,
