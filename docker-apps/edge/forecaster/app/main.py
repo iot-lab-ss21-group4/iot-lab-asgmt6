@@ -24,10 +24,10 @@ def setup(args: argparse.Namespace):
 
     all_threads: List[threading.Thread] = []
 
-    acuraccy_results_out_q = queue.Queue()
+    accuracy_results_out_q = queue.Queue()
     kafka_count_publisher = KafkaCountPublisher(settings["message_broker_settings"])
     best_online_forecaster_thread = BestOnlineForecasterThread(
-        event_in_q=acuraccy_results_out_q,
+        event_in_q=accuracy_results_out_q,
         publisher=platform_mqtt_publisher,
         kafka_count_publisher=kafka_count_publisher,
         number_of_models=len(settings["forecast_models"]),
@@ -44,7 +44,7 @@ def setup(args: argparse.Namespace):
             minio_client,
             platform_mqtt_publisher,
             periodic_forecaster_in_q,
-            acuraccy_results_out_q,
+            accuracy_results_out_q,
         )
         all_threads.extend(model_threads)
 
