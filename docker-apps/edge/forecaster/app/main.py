@@ -9,7 +9,7 @@ from edge.minio_client import setup_minio_client
 from edge.prepare_forecasting import setup_model
 from edge.thread.best_online_forecaster_thread import BestOnlineForecasterThread
 from edge.thread.timer_thread import TimerThread
-from edge.util.forecast_message_producer import ForecastMessageProducer
+from edge.util.kafka_count_publisher import KafkaCountPublisher
 from edge.util.room_count_publisher import setup_publisher
 
 
@@ -17,34 +17,33 @@ def setup(args: argparse.Namespace):
     with open(args.settings_file, "rt") as f:
         settings: Dict[str, Any] = json.load(f)
 
-    minio_client = setup_minio_client(settings["minio_settings"])
-    forecast_messages_producer = ForecastMessageProducer(settings["message_broker_settings"])
-
     all_threads: List[threading.Thread] = []
 
     # TODO: waiting for answer on moodle
     # create singleton mqtt publisher
     # under the assumption that one device (topic: username_deviceId) is sufficient
-    mqtt_publisher, mqtt_thread = setup_publisher(settings["iot_platform_mqtt_settings"])
-    all_threads.append(mqtt_thread)
+    platform_mqtt_publisher, platform_mqtt_thread = setup_publisher(settings["iot_platform_mqtt_settings"])
+    all_threads.append(platform_mqtt_thread)
 
     acuraccy_results_out_q = queue.Queue()
+    kafka_count_publisher = KafkaCountPublisher(settings["message_broker_settings"])
     best_online_forecaster_thread = BestOnlineForecasterThread(
         event_in_q=acuraccy_results_out_q,
-        publisher=mqtt_publisher,
-        message_producer=forecast_messages_producer,
+        publisher=platform_mqtt_publisher,
+        kafka_count_publisher=kafka_count_publisher,
         number_of_models=len(settings["forecast_models"]),
     )
     all_threads.append(best_online_forecaster_thread)
 
     periodic_forecaster_in_qs = []
+    minio_client = setup_minio_client(settings["minio_settings"])
     for model_configuration in settings["forecast_models"]:
         periodic_forecaster_in_q = queue.Queue()
         periodic_forecaster_in_qs.append(periodic_forecaster_in_q)
         model_threads = setup_model(
             model_configuration,
             minio_client,
-            mqtt_publisher,
+            platform_mqtt_publisher,
             periodic_forecaster_in_q,
             acuraccy_results_out_q,
         )

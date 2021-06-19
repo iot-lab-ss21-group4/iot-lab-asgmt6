@@ -9,7 +9,7 @@ from iotlab_utils.data_manager import TIME_COLUMN
 from minio import Minio
 
 
-class PeriodicForecasterThread(threading.Thread):
+class ForecasterThread(threading.Thread):
 
     forecast_sensor = "forecast"
     accuracy_metrics_sensors = ["MAE", "RMSE", "MAPE", "sMAPE", "MASE", "IAS"]

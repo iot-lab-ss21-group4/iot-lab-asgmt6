@@ -5,7 +5,7 @@ from typing import Any, Dict, List
 from minio import Minio
 
 from edge.thread.forecast_publisher_thread import ForecastPublisherThread
-from edge.thread.periodic_forecaster_thread import PeriodicForecasterThread
+from edge.thread.periodic_forecaster_thread import ForecasterThread
 from edge.util.data_initializer import DataInitializer
 from edge.util.room_count_publisher import IotPlatformPublisher
 
@@ -19,7 +19,7 @@ def setup_model(
 ) -> List[threading.Thread]:
     periodic_forecaster_out_q = queue.Queue()
     data_initializer = DataInitializer(config["iot_platform_consumer_settings"])
-    periodic_forecaster = PeriodicForecasterThread(
+    periodic_forecaster = ForecasterThread(
         event_in_q=periodic_forecaster_in_q,
         event_out_q=periodic_forecaster_out_q,
         accuracy_results_out_q=accuracy_results_out_q,

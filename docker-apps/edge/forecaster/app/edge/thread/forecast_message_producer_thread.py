@@ -1,20 +1,20 @@
 import queue
 import threading
 
-from edge.util.forecast_message_producer import ForecastMessageProducer
+from edge.util.kafka_count_publisher import KafkaCountPublisher
 
 
-class ForecastMessageProducerThread(threading.Thread):
+class KafkaCountPublisherThread(threading.Thread):
     def __init__(
         self,
         event_in_q: queue.Queue,
-        forecast_message_producer: ForecastMessageProducer,
+        kafka_count_publisher: KafkaCountPublisher,
     ):
         super().__init__()
         self.event_in_q = event_in_q
-        self.forecast_message_producer = forecast_message_producer
+        self.kafka_count_publisher = kafka_count_publisher
 
     def run(self):
         while True:
             _, y = self.event_in_q.get()
-            self.forecast_message_producer.produce(y)
+            self.kafka_count_publisher.produce(y)

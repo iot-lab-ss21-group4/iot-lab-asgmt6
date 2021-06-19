@@ -1,10 +1,10 @@
 import threading
 from queue import Queue
 
-from edge.util.forecast_message_producer import ForecastMessageProducer
+from edge.util.kafka_count_publisher import KafkaCountPublisher
 from edge.util.room_count_publisher import IotPlatformPublisher
 
-from .periodic_forecaster_thread import PeriodicForecasterThread
+from .periodic_forecaster_thread import ForecasterThread
 
 
 class BestOnlineForecasterThread(threading.Thread):
@@ -15,14 +15,14 @@ class BestOnlineForecasterThread(threading.Thread):
         self,
         event_in_q: Queue,
         publisher: IotPlatformPublisher,
-        message_producer: ForecastMessageProducer,
+        kafka_count_publisher: KafkaCountPublisher,
         number_of_models: int,
     ):
         super().__init__()
         self.event_in_q = event_in_q
         self.publisher = publisher
-        self.message_producer = message_producer
-        self.number_of_accuracy_values = number_of_models * len(PeriodicForecasterThread.accuracy_metrics_sensors)
+        self.kafka_count_publisher = kafka_count_publisher
+        self.number_of_accuracy_values = number_of_models * len(ForecasterThread.accuracy_metrics_sensors)
 
     def run(self):
         results = []
@@ -33,5 +33,5 @@ class BestOnlineForecasterThread(threading.Thread):
                 # TODO: Find best y using strategy - model independent
                 t, best_y, _ = results[0]
                 self.publisher.publish(self.sensor_name, t, best_y)
-                self.message_producer.produce(best_y)
+                self.kafka_count_publisher.produce(best_y)
                 results.clear()

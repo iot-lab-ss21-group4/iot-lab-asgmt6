@@ -5,7 +5,7 @@ from kafka import KafkaProducer
 FORECAST_MSG = "Forecast:{}"
 
 
-class ForecastMessageProducer:
+class KafkaCountPublisher:
     def __init__(self, config: Dict[str, Any]):
         server = "{}:{}".format(config["message_broker_host"], config["message_broker_port"])
         print("Connect to: " + server)
