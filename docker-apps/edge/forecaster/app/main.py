@@ -7,7 +7,7 @@ from typing import Any, Dict, List
 
 from edge.minio_client import setup_minio_client
 from edge.prepare_forecasting import setup_model
-from edge.thread.best_online_forecaster_thread import BestOnlineForecasterThread
+from edge.thread.forecast_evaluator_thread import ForecastEvaluatorThread
 from edge.thread.timer_thread import TimerThread
 from edge.util.kafka_count_publisher import KafkaCountPublisher
 from edge.util.room_count_publisher import PlatformSensorPublisher
@@ -24,29 +24,29 @@ def setup(args: argparse.Namespace):
 
     all_threads: List[threading.Thread] = []
 
-    accuracy_results_out_q = queue.Queue()
+    forecast_evaluator_in_q = queue.Queue()
     kafka_count_publisher = KafkaCountPublisher(settings["message_broker_settings"])
-    best_online_forecaster_thread = BestOnlineForecasterThread(
-        event_in_q=accuracy_results_out_q,
-        publisher=platform_sensor_publisher,
+    forecast_evaluator_thread = ForecastEvaluatorThread(
+        event_in_q=forecast_evaluator_in_q,
+        platform_sensor_publisher=platform_sensor_publisher,
         kafka_count_publisher=kafka_count_publisher,
         number_of_models=len(settings["forecast_models"]),
     )
-    all_threads.append(best_online_forecaster_thread)
+    all_threads.append(forecast_evaluator_thread)
 
     forecaster_in_qs = []
     minio_client = setup_minio_client(settings["minio_settings"])
     for model_configuration in settings["forecast_models"]:
         forecaster_in_q = queue.Queue()
         forecaster_in_qs.append(forecaster_in_q)
-        model_threads = setup_model(
+        forecaster_thread = setup_model(
             model_configuration,
             minio_client,
             platform_sensor_publisher,
             forecaster_in_q,
-            accuracy_results_out_q,
+            forecast_evaluator_in_q,
         )
-        all_threads.extend(model_threads)
+        all_threads.append(forecaster_thread)
 
     timer_thread = TimerThread(event_out_qs=forecaster_in_qs)
     all_threads.append(timer_thread)

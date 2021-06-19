@@ -5,21 +5,21 @@ from collections import deque
 
 import urllib3
 from edge.util.data_initializer import DataInitializer
+from edge.util.room_count_publisher import PlatformSensorPublisher
 from iotlab_utils.data_manager import TIME_COLUMN
 from minio import Minio
 
 
 class ForecasterThread(threading.Thread):
 
-    SENSOR_NAME = "forecast"
-    ACCURACY_METRIC_NAMES = ["MAE", "RMSE", "MAPE", "sMAPE", "MASE", "IAS"]
+    SENSOR_PREFIX = "forecast"
 
     def __init__(
         self,
         model_type: str,
         event_in_q: queue.Queue,
         event_out_q: queue.Queue,
-        accuracy_results_out_q: queue.Queue,
+        platform_sensor_publisher: PlatformSensorPublisher,
         data_initializer: DataInitializer,
         minio_client: Minio,
         model_bucket: str,
@@ -27,9 +27,10 @@ class ForecasterThread(threading.Thread):
     ):
         super().__init__()
         self.model_type = model_type
-        self.event_in_q = event_in_q
-        self.event_out_q = event_out_q
-        self.accuracy_results_out_q = accuracy_results_out_q
+        self.sensor_name = ForecasterThread.SENSOR_PREFIX + model_type.upper()
+        self.forecaster_in_q = event_in_q
+        self.forecast_evaluator_in_q = event_out_q
+        self.platform_sensor_publisher = platform_sensor_publisher
         self.data_initializer = data_initializer
         self.minio_client = minio_client
         self.model_bucket = model_bucket
@@ -40,9 +41,7 @@ class ForecasterThread(threading.Thread):
         latest_data, y_column = None, None
         latest_forecasts = deque([])
         while True:
-
-            pred_time = self.event_in_q.get()
-
+            pred_time = self.forecaster_in_q.get()
             try:
                 response: urllib3.HTTPResponse = self.minio_client.get_object(self.model_bucket, self.model_blob_name)
                 # Pickle protocol version is the latest available for ibmfunctions/action-python-v3.7:master
@@ -65,14 +64,9 @@ class ForecasterThread(threading.Thread):
             latest_forecasts.append((pred_time, forecast_value))
 
             # publish forecast result
-            self.event_out_q.put((pred_time, forecast_value, ForecasterThread.SENSOR_NAME + self.model_type.upper()))
+            self.platform_sensor_publisher.publish(self.sensor_name, pred_time * 1000, forecast_value)
+            self.forecast_evaluator_in_q.put((self.model_type, pred_time, forecast_value))
 
-            # TODO: check if accuracy computation (online evaluation) is possible
-            # TODO: how to get newest observation? continuous polling?
-            # TODO: compute accuracies and publish results
-            # TODO: remove oldest forecast element if evaluation was possible
-            for acc_metric in ForecasterThread.ACCURACY_METRIC_NAMES:
-                self.accuracy_results_out_q.put((pred_time, forecast_value, acc_metric))
             latest_forecasts.popleft()
 
             # Remove oldest sequence element
