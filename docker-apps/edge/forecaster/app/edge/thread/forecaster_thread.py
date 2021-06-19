@@ -11,8 +11,8 @@ from minio import Minio
 
 class ForecasterThread(threading.Thread):
 
-    forecast_sensor = "forecast"
-    accuracy_metrics_sensors = ["MAE", "RMSE", "MAPE", "sMAPE", "MASE", "IAS"]
+    SENSOR_NAME = "forecast"
+    ACCURACY_METRIC_NAMES = ["MAE", "RMSE", "MAPE", "sMAPE", "MASE", "IAS"]
 
     def __init__(
         self,
@@ -63,13 +63,13 @@ class ForecasterThread(threading.Thread):
             latest_forecasts.append((pred_time, forecast_value))
 
             # publish forecast result
-            self.event_out_q.put((pred_time, forecast_value, self.forecast_sensor))
+            self.event_out_q.put((pred_time, forecast_value, ForecasterThread.SENSOR_NAME))
 
             # TODO: check if accuracy computation (online evaluation) is possible
             # TODO: how to get newest observation? continuous polling?
             # TODO: compute accuracies and publish results
             # TODO: remove oldest forecast element if evaluation was possible
-            for acc_metric in self.accuracy_metrics_sensors:
+            for acc_metric in ForecasterThread.ACCURACY_METRIC_NAMES:
                 self.accuracy_results_out_q.put((pred_time, forecast_value, acc_metric))
             latest_forecasts.popleft()
 

@@ -9,7 +9,7 @@ from .forecaster_thread import ForecasterThread
 
 class BestOnlineForecasterThread(threading.Thread):
 
-    sensor_name = "bestOnline"
+    SENSOR_NAME = "bestOnline"
 
     def __init__(
         self,
@@ -22,7 +22,7 @@ class BestOnlineForecasterThread(threading.Thread):
         self.event_in_q = event_in_q
         self.publisher = publisher
         self.kafka_count_publisher = kafka_count_publisher
-        self.number_of_accuracy_values = number_of_models * len(ForecasterThread.accuracy_metrics_sensors)
+        self.number_of_accuracy_values = number_of_models * len(ForecasterThread.ACCURACY_METRIC_NAMES)
 
     def run(self):
         results = []
@@ -32,6 +32,6 @@ class BestOnlineForecasterThread(threading.Thread):
             if self.number_of_accuracy_values <= len(results):
                 # TODO: Find best y using strategy - model independent
                 t, best_y, _ = results[0]
-                self.publisher.publish(self.sensor_name, t, best_y)
+                self.publisher.publish(BestOnlineForecasterThread.SENSOR_NAME, t, best_y)
                 self.kafka_count_publisher.publish(best_y)
                 results.clear()

@@ -20,7 +20,7 @@ def setup(args: argparse.Namespace):
     # TODO: waiting for answer on moodle
     # create singleton mqtt publisher
     # under the assumption that one device (topic: username_deviceId) is sufficient
-    platform_mqtt_publisher = PlatformSensorPublisher(settings["iot_platform_mqtt_settings"])
+    platform_sensor_publisher = PlatformSensorPublisher(settings["iot_platform_mqtt_settings"])
 
     all_threads: List[threading.Thread] = []
 
@@ -28,7 +28,7 @@ def setup(args: argparse.Namespace):
     kafka_count_publisher = KafkaCountPublisher(settings["message_broker_settings"])
     best_online_forecaster_thread = BestOnlineForecasterThread(
         event_in_q=accuracy_results_out_q,
-        publisher=platform_mqtt_publisher,
+        publisher=platform_sensor_publisher,
         kafka_count_publisher=kafka_count_publisher,
         number_of_models=len(settings["forecast_models"]),
     )
@@ -42,7 +42,7 @@ def setup(args: argparse.Namespace):
         model_threads = setup_model(
             model_configuration,
             minio_client,
-            platform_mqtt_publisher,
+            platform_sensor_publisher,
             forecaster_in_q,
             accuracy_results_out_q,
         )

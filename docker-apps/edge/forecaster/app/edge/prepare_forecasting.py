@@ -4,7 +4,7 @@ from typing import Any, Dict, List
 
 from minio import Minio
 
-from edge.thread.forecast_publisher_thread import ForecastPublisherThread
+from edge.thread.forecast_publisher_thread import PlatformSensorPublisherThread
 from edge.thread.forecaster_thread import ForecasterThread
 from edge.util.data_initializer import DataInitializer
 from edge.util.room_count_publisher import PlatformSensorPublisher
@@ -28,5 +28,5 @@ def setup_model(
         model_bucket=config["model_bucket"],
         model_blob_name=config["model_blob_name"],
     )
-    forecast_publisher_thread = ForecastPublisherThread(event_in_q=forecaster_out_q, publisher=publisher)
+    forecast_publisher_thread = PlatformSensorPublisherThread(event_in_q=forecaster_out_q, publisher=publisher)
     return [forecaster_thread, forecast_publisher_thread]
