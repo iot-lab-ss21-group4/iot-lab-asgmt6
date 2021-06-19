@@ -17,13 +17,12 @@ def setup(args: argparse.Namespace):
     with open(args.settings_file, "rt") as f:
         settings: Dict[str, Any] = json.load(f)
 
-    all_threads: List[threading.Thread] = []
-
     # TODO: waiting for answer on moodle
     # create singleton mqtt publisher
     # under the assumption that one device (topic: username_deviceId) is sufficient
-    platform_mqtt_publisher, platform_mqtt_thread = setup_publisher(settings["iot_platform_mqtt_settings"])
-    all_threads.append(platform_mqtt_thread)
+    platform_mqtt_publisher = setup_publisher(settings["iot_platform_mqtt_settings"])
+
+    all_threads: List[threading.Thread] = []
 
     acuraccy_results_out_q = queue.Queue()
     kafka_count_publisher = KafkaCountPublisher(settings["message_broker_settings"])
