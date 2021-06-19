@@ -28,5 +28,5 @@ def setup_model(
         model_bucket=config["model_bucket"],
         model_blob_name=config["model_blob_name"],
     )
-    forecast_publisher = ForecastPublisherThread(event_in_q=forecaster_out_q, publisher=publisher)
-    return [forecaster_thread, forecast_publisher]
+    forecast_publisher_thread = ForecastPublisherThread(event_in_q=forecaster_out_q, publisher=publisher)
+    return [forecaster_thread, forecast_publisher_thread]
