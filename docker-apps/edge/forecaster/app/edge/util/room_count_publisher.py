@@ -16,11 +16,17 @@ class IotPlatformSettings:
 
 
 class PlatformSensorPublisher:
-    def __init__(self, client: mqtt.Client, topic: str, username: str, device_id: int):
-        self.client = client
-        self.topic = topic
-        self.username = username
-        self.device_id = device_id
+    def __init__(self, config: Dict[str, Any]):
+        settings = IotPlatformSettings(config)
+        self.client = mqtt.Client()
+        self.client.on_connect = on_connect
+        self.client.on_disconnect = on_disconnect
+        self.client.on_publish = on_publish
+        self.client.username_pw_set(settings.iot_platform_gateway_username, settings.iot_platform_gateway_password)
+        self.client.connect(settings.iot_platform_gateway_ip, port=settings.iot_platform_gateway_port)
+        self.topic = str(settings.iot_platform_user_id) + "_" + str(settings.iot_platform_device_id)
+        self.username = settings.iot_platform_group_name
+        self.device_id = settings.iot_platform_device_id
         self.client.loop_start()
 
     def publish(self, sensor_name: str, timestamp: int, count: int):
@@ -49,21 +55,3 @@ def on_disconnect(client: mqtt.Client, userdata: None, rc: int):
 
 def on_publish(client: mqtt.Client, userdata: None, rc: int):
     print("MQTT event published. Result code: {}.".format(rc))
-
-
-def setup_publisher(config: Dict[str, Any]) -> PlatformSensorPublisher:
-    client = mqtt.Client()
-    client.on_connect = on_connect
-    client.on_disconnect = on_disconnect
-    client.on_publish = on_publish
-    settings = IotPlatformSettings(config)
-    mqtt_topic = str(settings.iot_platform_user_id) + "_" + str(settings.iot_platform_device_id)
-    client.username_pw_set(settings.iot_platform_gateway_username, settings.iot_platform_gateway_password)
-    client.connect(settings.iot_platform_gateway_ip, port=settings.iot_platform_gateway_port)
-    publisher = PlatformSensorPublisher(
-        client,
-        mqtt_topic,
-        settings.iot_platform_group_name,
-        settings.iot_platform_device_id,
-    )
-    return publisher

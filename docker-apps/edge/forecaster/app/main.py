@@ -10,7 +10,7 @@ from edge.prepare_forecasting import setup_model
 from edge.thread.best_online_forecaster_thread import BestOnlineForecasterThread
 from edge.thread.timer_thread import TimerThread
 from edge.util.kafka_count_publisher import KafkaCountPublisher
-from edge.util.room_count_publisher import setup_publisher
+from edge.util.room_count_publisher import PlatformSensorPublisher
 
 
 def setup(args: argparse.Namespace):
@@ -20,7 +20,7 @@ def setup(args: argparse.Namespace):
     # TODO: waiting for answer on moodle
     # create singleton mqtt publisher
     # under the assumption that one device (topic: username_deviceId) is sufficient
-    platform_mqtt_publisher = setup_publisher(settings["iot_platform_mqtt_settings"])
+    platform_mqtt_publisher = PlatformSensorPublisher(settings["iot_platform_mqtt_settings"])
 
     all_threads: List[threading.Thread] = []
 
