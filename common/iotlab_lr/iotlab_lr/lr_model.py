@@ -1,3 +1,5 @@
+from typing import Optional
+
 import optuna
 import pandas as pd
 from iotlab_utils.data_manager import (
@@ -11,15 +13,25 @@ from sklearn.linear_model import Lasso
 
 
 class LrWrapper:
-    def __init__(self, model: Lasso, lag_order: int):
+    def __init__(self, model: Lasso, lag_order: int, look_back_buffer: Optional[pd.DataFrame] = None):
         self.model = model
         self.lag_order = lag_order
+        self.look_back_buffer: Optional[pd.DataFrame] = None
+        if look_back_buffer is not None:
+            self.update_look_back_buffer(look_back_buffer)
 
     @property
     def look_back_length(self) -> int:
         return self.lag_order
 
+    def update_look_back_buffer(self, look_back_buffer: pd.DataFrame):
+        assert look_back_buffer.shape[0] == self.look_back_length, "LR lookback buffer must be of length {}".format(
+            self.look_back_length
+        )
+        self.look_back_buffer = look_back_buffer
+
     def forecast(self, ts: pd.DataFrame) -> pd.DataFrame:
+        ts = pd.concat([self.look_back_buffer, ts], axis=0)
         y_column, x_columns, ts, useless_rows = prepare_data_with_features(
             ts, detailed_seasonality=False, lag_order=self.lag_order
         )
@@ -39,7 +51,7 @@ class LrWrapper:
                 ) / (ts.loc[ts.index[i + lag - 1], TIME_COLUMN] - ts.loc[ts.index[i + lag - 2], TIME_COLUMN])
 
         ts.loc[ts.index[useless_rows:], y_column] = ts.loc[ts.index[useless_rows:], y_column].round()
-        return ts[[TIME_COLUMN, y_column]]
+        return ts.loc[ts.index[self.look_back_length :], [TIME_COLUMN, y_column]]
 
 
 def train(ts: pd.DataFrame) -> LrWrapper:
@@ -65,4 +77,6 @@ def train(ts: pd.DataFrame) -> LrWrapper:
     forecast_model = Lasso(alpha=alpha)
     model_fit = forecast_model.fit(train_ts[x_columns].to_numpy(), train_ts[y_column].to_numpy())
 
-    return LrWrapper(model_fit, lag_order)
+    wrapped_model = LrWrapper(model_fit, lag_order)
+    wrapped_model.update_look_back_buffer(ts.loc[ts.index[-wrapped_model.look_back_length :], [TIME_COLUMN, y_column]])
+    return wrapped_model

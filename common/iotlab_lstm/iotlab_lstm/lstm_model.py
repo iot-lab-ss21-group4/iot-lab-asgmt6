@@ -30,7 +30,7 @@ class StudentCountPredictor(nn.Module):
     y_column = UNIVARIATE_DATA_COLUMN
     useless_rows = 1
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: Dict[str, Any], look_back_buffer: Optional[pd.DataFrame] = None):
         super().__init__()
 
         self.lr: float = config["lr"]
@@ -55,9 +55,19 @@ class StudentCountPredictor(nn.Module):
         self.criterion = nn.MSELoss()
         self.optimizer = th.optim.Adam(self.parameters(), lr=self.lr)
 
+        self.look_back_buffer: Optional[pd.DataFrame] = None
+        if look_back_buffer is not None:
+            self.update_look_back_buffer(look_back_buffer)
+
     @property
     def look_back_length(self) -> int:
         return self.seq_len + self.useless_rows
+
+    def update_look_back_buffer(self, look_back_buffer: pd.DataFrame):
+        assert look_back_buffer.shape[0] == self.look_back_length, "LSTM lookback buffer must be of length {}".format(
+            self.look_back_length
+        )
+        self.look_back_buffer = look_back_buffer
 
     def forward(self, x: th.Tensor, labels: Optional[th.Tensor] = None) -> th.Tensor:
         lstm_out, (h_n, c_n) = self.lstm(x)
@@ -114,6 +124,7 @@ class StudentCountPredictor(nn.Module):
         return prediction
 
     def forecast(self, ts: pd.DataFrame, update_lag1_count: bool = True) -> pd.DataFrame:
+        ts = pd.concat([self.look_back_buffer, ts], axis=0)
         _, _, ts, _ = prepare_data_with_features(ts)
         self.scale_data(ts)
 
@@ -139,9 +150,8 @@ class StudentCountPredictor(nn.Module):
             ts.loc[ts.index[i + self.seq_len], self.y_column] = value
 
         self.inverse_data(ts)
-        ts[self.y_column] = ts[self.y_column].round(decimals=0)
-        ts[self.y_column] = ts[self.y_column].astype(np.int)
-        return ts[[TIME_COLUMN, self.y_column]]
+        ts[self.y_column] = ts[self.y_column].round()
+        return ts.loc[ts.index[self.look_back_length :], [TIME_COLUMN, self.y_column]]
 
     def plot_after_train(self, ts: pd.DataFrame):
         # TODO: will be removed after some testing
@@ -155,9 +165,10 @@ class StudentCountPredictor(nn.Module):
         plt.show()
 
 
-def train(data: pd.DataFrame, config: Dict[str, Any]):
+def train(ts: pd.DataFrame, config: Dict[str, Any]):
     model = StudentCountPredictor(config)
-    dataset = model.prepare_data(data)
+    model.update_look_back_buffer(ts.loc[ts.index[-model.look_back_length :], [TIME_COLUMN, model.y_column]])
+    dataset = model.prepare_data(ts)
     # https://discuss.pytorch.org/t/what-are-the-dis-advantages-of-persistent-workers/102110/4
     dataloader = DataLoader(dataset, batch_size=8, persistent_workers=True)
     for epoch in range(config["n_epochs"]):
@@ -165,5 +176,5 @@ def train(data: pd.DataFrame, config: Dict[str, Any]):
             loss = model.general_step(train_batch)
             model.optimize(loss)
     if config["plot_after_train"]:
-        model.plot_after_train(data)
+        model.plot_after_train(ts)
     return model

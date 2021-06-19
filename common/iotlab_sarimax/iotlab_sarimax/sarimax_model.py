@@ -1,5 +1,5 @@
 import threading
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 import optuna
@@ -24,19 +24,26 @@ class SARIMAXWrapper:
         self,
         model: SARIMAXResultsWrapper,
         avg_dt: pd.DateOffset,
-        last_t: int,
-        last_y: DEFAULT_FLOAT_TYPE,
         exog_columns: List[str],
+        look_back_buffer: Optional[pd.DataFrame] = None,
     ):
         self.model = model
         self.avg_dt = avg_dt
-        self.last_t = last_t
-        self.last_y = last_y
         self.exog_columns = exog_columns
+        self.look_back_buffer: Optional[pd.DataFrame] = None
+        if look_back_buffer is not None:
+            self.update_look_back_buffer(look_back_buffer)
 
     @property
     def look_back_length(self) -> int:
         return 1
+
+    def update_look_back_buffer(self, look_back_buffer: pd.DataFrame):
+        assert look_back_buffer.shape[0] == self.look_back_length, "SARIMAX lookback buffer must be of length {}".format(
+            self.look_back_length
+        )
+        if self.look_back_buffer is None:
+            self.look_back_buffer = look_back_buffer
 
     def forecast(self, ts: pd.DataFrame) -> pd.DataFrame:
         y_column, _, ts, _ = prepare_data_with_features(
@@ -45,11 +52,13 @@ class SARIMAXWrapper:
         pred_time = ts.loc[ts.index[-1], TIME_COLUMN]
         # Uses freq and last_t to forecast beyond the last datapoint and
         # uses interpolation to predict exactly at the datapoint times.
+        last_t = self.look_back_buffer[self.look_back_buffer.index[-1], TIME_COLUMN]
+        last_y = self.look_back_buffer[self.look_back_buffer.index[-1], y_column]
         avg_dt_sec = self.avg_dt.delta.total_seconds()
-        forecast_size = int(np.ceil((pred_time - self.last_t) / avg_dt_sec))
-        times, ys = [self.last_t], [self.last_y] + [DEFAULT_FLOAT_TYPE()] * forecast_size
+        forecast_size = int(np.ceil((pred_time - last_t) / avg_dt_sec))
+        times, ys = [last_t], [last_y] + [DEFAULT_FLOAT_TYPE()] * forecast_size
         for i in range(1, forecast_size + 1):
-            times.append(self.last_t + int(np.round(i * avg_dt_sec)))
+            times.append(last_t + int(np.round(i * avg_dt_sec)))
         regular_ts = pd.DataFrame(
             {TIME_COLUMN: pd.Series(times), y_column: pd.Series(ys, dtype=DEFAULT_FLOAT_TYPE)},
             columns=[TIME_COLUMN, y_column],
@@ -62,11 +71,7 @@ class SARIMAXWrapper:
         ts[y_column] = univariate_f(ts[TIME_COLUMN].to_numpy()).astype(DEFAULT_FLOAT_TYPE)
         ts[y_column] = ts[y_column].round()
 
-        # TODO: check what is going on below and remove unnecessary stuff.
-        new_t, new_y = ts.loc[ts.index[-1], TIME_COLUMN], ts.loc[ts.index[-1], y_column]
-        ts = pd.DataFrame({TIME_COLUMN: [self.last_t, new_t], y_column: [self.last_y, new_y]})
-
-        return ts
+        return ts.loc[ts.index[self.look_back_length :], [TIME_COLUMN, y_column]]
 
 
 def train(data: pd.DataFrame) -> SARIMAXWrapper:
@@ -118,10 +123,6 @@ def train(data: pd.DataFrame) -> SARIMAXWrapper:
     forecast_model = SARIMAX(train_ts[y_column], exog=train_ts[exog_columns], trend="c", order=(p, d, q))
     model_fit = forecast_model.fit(disp=False)
 
-    return SARIMAXWrapper(
-        model_fit,
-        avg_dt,
-        train_ts.loc[train_ts.index[-1], TIME_COLUMN],
-        train_ts.loc[train_ts.index[-1], y_column],
-        exog_columns,
-    )
+    wrapped_model = SARIMAXWrapper(model_fit, avg_dt, exog_columns)
+    wrapped_model.look_back_buffer(train_ts.loc[train_ts.index[-wrapped_model.look_back_length :], [TIME_COLUMN, y_column]])
+    return wrapped_model
