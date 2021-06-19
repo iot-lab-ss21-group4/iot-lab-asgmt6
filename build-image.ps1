@@ -1,3 +1,5 @@
+#!/usr/bin/pwsh
+
 param(
     [string] $DeploymentType = "edge",
     [string] $AppName = "forecaster",
