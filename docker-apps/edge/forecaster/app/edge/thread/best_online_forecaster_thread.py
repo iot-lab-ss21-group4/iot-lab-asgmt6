@@ -4,7 +4,7 @@ from queue import Queue
 from edge.util.kafka_count_publisher import KafkaCountPublisher
 from edge.util.room_count_publisher import PlatformSensorPublisher
 
-from .periodic_forecaster_thread import ForecasterThread
+from .forecaster_thread import ForecasterThread
 
 
 class BestOnlineForecasterThread(threading.Thread):

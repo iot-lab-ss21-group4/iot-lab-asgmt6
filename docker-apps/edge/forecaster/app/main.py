@@ -34,21 +34,21 @@ def setup(args: argparse.Namespace):
     )
     all_threads.append(best_online_forecaster_thread)
 
-    periodic_forecaster_in_qs = []
+    forecaster_in_qs = []
     minio_client = setup_minio_client(settings["minio_settings"])
     for model_configuration in settings["forecast_models"]:
-        periodic_forecaster_in_q = queue.Queue()
-        periodic_forecaster_in_qs.append(periodic_forecaster_in_q)
+        forecaster_in_q = queue.Queue()
+        forecaster_in_qs.append(forecaster_in_q)
         model_threads = setup_model(
             model_configuration,
             minio_client,
             platform_mqtt_publisher,
-            periodic_forecaster_in_q,
+            forecaster_in_q,
             accuracy_results_out_q,
         )
         all_threads.extend(model_threads)
 
-    timer_thread = TimerThread(event_out_qs=periodic_forecaster_in_qs)
+    timer_thread = TimerThread(event_out_qs=forecaster_in_qs)
     all_threads.append(timer_thread)
 
     for thread in all_threads:
