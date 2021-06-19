@@ -1,4 +1,4 @@
-FROM ibmfunctions/action-python-v3.7:latest
+FROM ibmfunctions/action-python-v3.7:master
 
 ARG docker_app_path="docker-apps/edge/forecaster"
 ARG container_app_path="/app"

@@ -43,7 +43,7 @@ class PeriodicForecasterThread(threading.Thread):
 
             try:
                 response: urllib3.HTTPResponse = self.minio_client.get_object(self.model_bucket, self.model_blob_name)
-                # Pickle protocol version is the latest available for ibmfunctions/action-python-v3.7:latest
+                # Pickle protocol version is the latest available for ibmfunctions/action-python-v3.7:master
                 model_fit = pickle.loads(response.data)
             finally:
                 response.close()

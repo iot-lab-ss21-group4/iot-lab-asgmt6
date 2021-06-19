@@ -20,9 +20,18 @@ from statsmodels.tsa.statespace.sarimax import SARIMAX, SARIMAXResultsWrapper
 
 
 class SARIMAXWrapper:
-    def __init__(self, model: SARIMAXResultsWrapper, avg_dt: pd.DateOffset, exog_columns: List[str]):
+    def __init__(
+        self,
+        model: SARIMAXResultsWrapper,
+        avg_dt: pd.DateOffset,
+        last_t: int,
+        last_y: DEFAULT_FLOAT_TYPE,
+        exog_columns: List[str],
+    ):
         self.model = model
         self.avg_dt = avg_dt
+        self.last_t = last_t
+        self.last_y = last_y
         self.exog_columns = exog_columns
 
     @property
@@ -33,15 +42,14 @@ class SARIMAXWrapper:
         y_column, _, ts, _ = prepare_data_with_features(
             ts, seasonality_features=False, detailed_seasonality=False, extra_features=False, lag_order=0
         )
-
-        last_t, last_y = ts.loc[ts.index[0], TIME_COLUMN], ts.loc[ts.index[0], y_column]
         pred_time = ts.loc[ts.index[-1], TIME_COLUMN]
-
+        # Uses freq and last_t to forecast beyond the last datapoint and
+        # uses interpolation to predict exactly at the datapoint times.
         avg_dt_sec = self.avg_dt.delta.total_seconds()
-        forecast_size = int(np.ceil((pred_time - last_t) / avg_dt_sec))
-        times, ys = [last_t], [last_y] + [DEFAULT_FLOAT_TYPE()] * forecast_size
+        forecast_size = int(np.ceil((pred_time - self.last_t) / avg_dt_sec))
+        times, ys = [self.last_t], [self.last_y] + [DEFAULT_FLOAT_TYPE()] * forecast_size
         for i in range(1, forecast_size + 1):
-            times.append(last_t + int(np.round(i * avg_dt_sec)))
+            times.append(self.last_t + int(np.round(i * avg_dt_sec)))
         regular_ts = pd.DataFrame(
             {TIME_COLUMN: pd.Series(times), y_column: pd.Series(ys, dtype=DEFAULT_FLOAT_TYPE)},
             columns=[TIME_COLUMN, y_column],
@@ -54,8 +62,9 @@ class SARIMAXWrapper:
         ts[y_column] = univariate_f(ts[TIME_COLUMN].to_numpy()).astype(DEFAULT_FLOAT_TYPE)
         ts[y_column] = ts[y_column].round()
 
+        # TODO: check what is going on below and remove unnecessary stuff.
         new_t, new_y = ts.loc[ts.index[-1], TIME_COLUMN], ts.loc[ts.index[-1], y_column]
-        ts = pd.DataFrame({TIME_COLUMN: [last_t, new_t], y_column: [last_y, new_y]})
+        ts = pd.DataFrame({TIME_COLUMN: [self.last_t, new_t], y_column: [self.last_y, new_y]})
 
         return ts
 
@@ -109,4 +118,10 @@ def train(data: pd.DataFrame) -> SARIMAXWrapper:
     forecast_model = SARIMAX(train_ts[y_column], exog=train_ts[exog_columns], trend="c", order=(p, d, q))
     model_fit = forecast_model.fit(disp=False)
 
-    return SARIMAXWrapper(model_fit, avg_dt, exog_columns)
+    return SARIMAXWrapper(
+        model_fit,
+        avg_dt,
+        train_ts.loc[train_ts.index[-1], TIME_COLUMN],
+        train_ts.loc[train_ts.index[-1], y_column],
+        exog_columns,
+    )
