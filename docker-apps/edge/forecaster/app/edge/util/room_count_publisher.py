@@ -1,3 +1,4 @@
+import json
 from typing import Any, Dict
 
 import paho.mqtt.client as mqtt
@@ -29,13 +30,13 @@ class PlatformSensorPublisher:
         self.device_id = settings.iot_platform_device_id
         self.client.loop_start()
 
-    def publish(self, sensor_name: str, timestamp: int, count: int):
+    def publish(self, sensor_name: str, timestamp: int, value: Any):
         message = (
             "{"
             + '"username":"{}","{}":{},"device_id":{},"timestamp":{}'.format(
                 self.username,
                 sensor_name,
-                str(count),
+                json.dumps(value),
                 str(self.device_id),
                 str(timestamp),
             )
