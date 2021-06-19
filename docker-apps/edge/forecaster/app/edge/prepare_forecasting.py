@@ -6,7 +6,7 @@ from minio import Minio
 
 from edge.thread.forecaster_thread import ForecasterThread
 from edge.util.data_initializer import DataInitializer
-from edge.util.room_count_publisher import PlatformSensorPublisher
+from edge.util.platform_sensor_publisher import PlatformSensorPublisher
 
 
 def setup_model(

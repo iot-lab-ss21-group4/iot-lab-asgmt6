@@ -3,7 +3,7 @@ from queue import Queue
 from typing import Dict, List, Tuple
 
 from edge.util.kafka_count_publisher import KafkaCountPublisher
-from edge.util.room_count_publisher import PlatformSensorPublisher
+from edge.util.platform_sensor_publisher import PlatformSensorPublisher
 
 
 class ForecastEvaluatorThread(threading.Thread):

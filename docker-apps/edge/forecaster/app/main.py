@@ -10,7 +10,7 @@ from edge.prepare_forecasting import setup_model
 from edge.thread.forecast_evaluator_thread import ForecastEvaluatorThread
 from edge.thread.timer_thread import TimerThread
 from edge.util.kafka_count_publisher import KafkaCountPublisher
-from edge.util.room_count_publisher import PlatformSensorPublisher
+from edge.util.platform_sensor_publisher import PlatformSensorPublisher
 
 
 def setup(args: argparse.Namespace):

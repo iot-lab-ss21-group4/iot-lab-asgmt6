@@ -5,7 +5,7 @@ from collections import deque
 
 import urllib3
 from edge.util.data_initializer import DataInitializer
-from edge.util.room_count_publisher import PlatformSensorPublisher
+from edge.util.platform_sensor_publisher import PlatformSensorPublisher
 from iotlab_utils.data_manager import TIME_COLUMN
 from minio import Minio
 

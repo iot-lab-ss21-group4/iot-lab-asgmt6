@@ -1,7 +1,7 @@
 import queue
 import threading
 
-from edge.util.room_count_publisher import PlatformSensorPublisher
+from edge.util.platform_sensor_publisher import PlatformSensorPublisher
 
 
 class PlatformSensorPublisherThread(threading.Thread):
