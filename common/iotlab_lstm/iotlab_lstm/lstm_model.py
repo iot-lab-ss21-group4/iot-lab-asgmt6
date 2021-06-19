@@ -158,7 +158,8 @@ class StudentCountPredictor(nn.Module):
 def train(data: pd.DataFrame, config: Dict[str, Any]):
     model = StudentCountPredictor(config)
     dataset = model.prepare_data(data)
-    dataloader = DataLoader(dataset, batch_size=8)
+    # https://discuss.pytorch.org/t/what-are-the-dis-advantages-of-persistent-workers/102110/4
+    dataloader = DataLoader(dataset, batch_size=8, persistent_workers=True)
     for epoch in range(config["n_epochs"]):
         for train_batch in dataloader:
             loss = model.general_step(train_batch)
