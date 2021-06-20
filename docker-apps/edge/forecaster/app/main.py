@@ -9,6 +9,8 @@ from edge.minio_client import setup_minio_client
 from edge.prepare_forecasting import setup_model
 from edge.thread.forecast_evaluator_thread import ForecastEvaluatorThread
 from edge.thread.timer_thread import TimerThread
+from edge.util.accuracy import AccuracyCalculator
+from edge.util.forecast_combiner import ForecastCombiner
 from edge.util.kafka_count_publisher import KafkaCountPublisher
 from edge.util.platform_sensor_publisher import PlatformSensorPublisher
 
@@ -31,7 +33,8 @@ def setup(args: argparse.Namespace):
         platform_sensor_publisher=platform_sensor_publisher,
         kafka_count_publisher=kafka_count_publisher,
         number_of_models=len(settings["forecast_models"]),
-        accuracy_calculator=settings["accuracy_calculator_settings"],
+        accuracy_calculator=AccuracyCalculator(),
+        forecast_combiner=ForecastCombiner.build_from_config(settings["forecast_combine_strategy"]),
     )
     all_threads.append(forecast_evaluator_thread)
 
