@@ -37,7 +37,7 @@ class PlatformSensorPublisher:
                 sensor_name,
                 json.dumps(value),
                 str(self.device_id),
-                str(timestamp),
+                str(timestamp * 1000),
             )
             + "}"
         )

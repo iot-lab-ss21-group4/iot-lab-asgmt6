@@ -8,6 +8,7 @@ from edge.util.data_fetcher import DataFetcher
 from edge.util.forecast_combiner import ForecastCombiner
 from edge.util.kafka_count_publisher import KafkaCountPublisher
 from edge.util.platform_sensor_publisher import PlatformSensorPublisher
+from iotlab_utils.data_manager import TIME_COLUMN
 
 
 class ForecastEvaluatorThread(threading.Thread):
@@ -32,6 +33,7 @@ class ForecastEvaluatorThread(threading.Thread):
         self.forecast_evaluator_in_q = event_in_q
         self.platform_sensor_publisher = platform_sensor_publisher
         self.kafka_count_publisher = kafka_count_publisher
+        self.data_fetcher = data_fetcher
         self.number_of_accuracy_values = number_of_models * len(ForecastEvaluatorThread.ACCURACY_METRIC_NAMES)
         self.accuracy_calculator = accuracy_calculator
         self.forecast_combiner = forecast_combiner
@@ -43,7 +45,14 @@ class ForecastEvaluatorThread(threading.Thread):
     def track_model_forecasts(self, model_type: str, t: int, y: int):
         # TODO: update the target and forecast buffers and leave them in a valid state!
         self.forecast_buffer[model_type].append((t, y))
-        pass
+        earliest_forecast_t = self.forecast_buffer[model_type][0][0]
+        relevant_targets, y_column = self.data_fetcher.fetch_time_window(lower_bound=earliest_forecast_t)
+        if (
+            relevant_targets.shape[0] == 0
+            or relevant_targets.loc[relevant_targets.index[0], TIME_COLUMN] > earliest_forecast_t
+        ):
+            # TODO: load relevant_targets.shape[0] + 1 many target datapoints this time.
+            pass
 
     def get_target_and_forecast_pairs(self) -> Tuple[List[int], List[int]]:
         # TODO: assuming the target and forecast buffers are in a valid state, return the longest list of target

@@ -57,5 +57,5 @@ class ForecasterThread(threading.Thread):
             forecast_value = min(45, max(0, forecast_value))
 
             # publish forecast result
-            self.platform_sensor_publisher.publish(self.sensor_name, pred_time * 1000, forecast_value)
+            self.platform_sensor_publisher.publish(self.sensor_name, pred_time, forecast_value)
             self.forecast_evaluator_in_q.put((self.model_type, pred_time, forecast_value))
