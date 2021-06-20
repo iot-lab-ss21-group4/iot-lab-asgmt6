@@ -2,6 +2,7 @@ import threading
 from queue import Queue
 from typing import Dict, List, Tuple
 
+from edge.util.accuracy import AccuracyCalculator
 from edge.util.kafka_count_publisher import KafkaCountPublisher
 from edge.util.platform_sensor_publisher import PlatformSensorPublisher
 
@@ -19,12 +20,14 @@ class ForecastEvaluatorThread(threading.Thread):
         platform_sensor_publisher: PlatformSensorPublisher,
         kafka_count_publisher: KafkaCountPublisher,
         number_of_models: int,
+        accuracy_calculator: AccuracyCalculator,
     ):
         super().__init__()
         self.forecast_evaluator_in_q = event_in_q
         self.platform_sensor_publisher = platform_sensor_publisher
         self.kafka_count_publisher = kafka_count_publisher
         self.number_of_accuracy_values = number_of_models * len(ForecastEvaluatorThread.ACCURACY_METRIC_NAMES)
+        self.accuracy_calculator = accuracy_calculator
 
     def run(self):
         evaluation_rounds: List[Dict[str, Tuple[int, float, List[float]]]] = []
