@@ -13,10 +13,10 @@ def setup_model(
     config: Dict[str, Any],
     minio_client: Minio,
     platform_sensor_publisher: PlatformSensorPublisher,
+    data_fetcher: DataFetcher,
     forecaster_in_q: queue.Queue,
     forecast_evaluator_in_q: queue.Queue,
 ) -> threading.Thread:
-    data_fetcher = DataFetcher(config["iot_platform_consumer_settings"])
     forecaster_thread = ForecasterThread(
         model_type=config["type"],
         event_in_q=forecaster_in_q,

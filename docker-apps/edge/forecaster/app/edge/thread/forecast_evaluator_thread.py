@@ -4,6 +4,7 @@ from queue import Queue
 from typing import Dict, List, Tuple
 
 from edge.util.accuracy import Accuracy, AccuracyCalculator
+from edge.util.data_fetcher import DataFetcher
 from edge.util.forecast_combiner import ForecastCombiner
 from edge.util.kafka_count_publisher import KafkaCountPublisher
 from edge.util.platform_sensor_publisher import PlatformSensorPublisher
@@ -21,6 +22,7 @@ class ForecastEvaluatorThread(threading.Thread):
         event_in_q: Queue,
         platform_sensor_publisher: PlatformSensorPublisher,
         kafka_count_publisher: KafkaCountPublisher,
+        data_fetcher: DataFetcher,
         number_of_models: int,
         accuracy_calculator: AccuracyCalculator,
         forecast_combiner: ForecastCombiner,
@@ -35,7 +37,7 @@ class ForecastEvaluatorThread(threading.Thread):
         self.forecast_combiner = forecast_combiner
         self.max_acc_samples = max_acc_samples
 
-        self.target_buffer: List[Tuple[int, int]] = []
+        self.target_buffer: Dict[str, List[Tuple[int, int]]] = defaultdict(list)
         self.forecast_buffer: Dict[str, List[Tuple[int, int]]] = defaultdict(list)
 
     def track_model_forecasts(self, model_type: str, t: int, y: int):

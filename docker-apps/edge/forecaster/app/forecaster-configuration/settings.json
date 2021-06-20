@@ -1,9 +1,9 @@
 {
   "minio_settings": {
-    "minio_host" : "10.195.1.242",
-    "minio_port" : 9000,
-    "minio_access_key" : "...",
-    "minio_secret_key" : "..."
+    "minio_host": "10.195.1.242",
+    "minio_port": 9000,
+    "minio_access_key": "...",
+    "minio_secret_key": "..."
   },
   "message_broker_settings": {
     "message_broker_topic_name": "EDGE_FORECAST",
@@ -11,26 +11,25 @@
     "message_broker_port": 29092
   },
   "iot_platform_mqtt_settings": {
-    "iot_platform_gateway_username" : "JWT",
-    "iot_platform_gateway_ip" : "131.159.35.132",
-    "iot_platform_gateway_port" : 1883,
-    "iot_platform_group_name" : "group4_2021_ss",
-    "iot_platform_user_id" : 48,
-    "iot_platform_device_id" : 135,
+    "iot_platform_gateway_username": "JWT",
+    "iot_platform_gateway_ip": "131.159.35.132",
+    "iot_platform_gateway_port": 1883,
+    "iot_platform_group_name": "group4_2021_ss",
+    "iot_platform_user_id": 48,
+    "iot_platform_device_id": 135,
     "iot_platform_gateway_password": ""
+  },
+  "iot_platform_consumer_settings": {
+    "iot_platform_consumer_host": "131.159.35.132",
+    "iot_platform_consumer_id": 1253,
+    "iot_platform_consumer_key": ""
   },
   "forecast_models": [
     {
       "type": "lstm",
       "model_bucket": "production-model",
-      "model_blob_name": "lstm_model.pk",
-      "iot_platform_consumer_settings": {
-        "iot_platform_consumer_host" : "131.159.35.132",
-        "iot_platform_consumer_id" : 1253,
-        "iot_platform_consumer_key" : ""
-      }
+      "model_blob_name": "lstm_model.pk"
     }
   ],
   "forecast_combine_strategy": "select_most_accurate"
 }
-

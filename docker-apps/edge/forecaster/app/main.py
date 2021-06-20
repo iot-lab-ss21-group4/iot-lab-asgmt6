@@ -10,6 +10,7 @@ from edge.prepare_forecasting import setup_model
 from edge.thread.forecast_evaluator_thread import ForecastEvaluatorThread
 from edge.thread.timer_thread import TimerThread
 from edge.util.accuracy import AccuracyCalculator
+from edge.util.data_fetcher import DataFetcher
 from edge.util.forecast_combiner import ForecastCombiner
 from edge.util.kafka_count_publisher import KafkaCountPublisher
 from edge.util.platform_sensor_publisher import PlatformSensorPublisher
@@ -27,10 +28,12 @@ def setup(args: argparse.Namespace):
 
     forecast_evaluator_in_q = queue.Queue()
     kafka_count_publisher = KafkaCountPublisher(settings["message_broker_settings"])
+    data_fetcher = DataFetcher(settings["iot_platform_consumer_settings"])
     forecast_evaluator_thread = ForecastEvaluatorThread(
         event_in_q=forecast_evaluator_in_q,
         platform_sensor_publisher=platform_sensor_publisher,
         kafka_count_publisher=kafka_count_publisher,
+        data_fetcher=data_fetcher,
         number_of_models=len(settings["forecast_models"]),
         accuracy_calculator=AccuracyCalculator(),
         forecast_combiner=ForecastCombiner.build_from_config(settings["forecast_combine_strategy"]),
@@ -43,11 +46,12 @@ def setup(args: argparse.Namespace):
         forecaster_in_q = queue.Queue()
         forecaster_in_qs.append(forecaster_in_q)
         forecaster_thread = setup_model(
-            model_configuration,
-            minio_client,
-            platform_sensor_publisher,
-            forecaster_in_q,
-            forecast_evaluator_in_q,
+            config=model_configuration,
+            minio_client=minio_client,
+            platform_sensor_publisher=platform_sensor_publisher,
+            data_fetcher=data_fetcher,
+            forecaster_in_q=forecaster_in_q,
+            forecast_evaluator_in_q=forecast_evaluator_in_q,
         )
         all_threads.append(forecaster_thread)
 
