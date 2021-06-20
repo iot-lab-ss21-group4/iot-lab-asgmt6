@@ -24,41 +24,51 @@ def recursive_dict_update(d: Dict, u: Dict) -> Dict:
     return d
 
 
-def create_data_frame_from_hits(hits_list: List[Dict[str, Any]], data_range: Iterable[int]) -> pd.DataFrame:
+def create_data_frame_from_hits(
+    hits_list: List[Dict[str, Any]], data_range: Iterable[int], is_reversed: bool = False
+) -> pd.DataFrame:
+    if is_reversed:
+        hits_list = reversed(hits_list)
     counts_df = pd.DataFrame(index=data_range, columns=[TIME_COLUMN, UNIVARIATE_DATA_COLUMN])
-    for i in data_range:
-        timestamp_ms, value = hits_list[i]["_source"]["timestamp"], hits_list[i]["_source"]["value"]
+    for i, hit in zip(data_range, hits_list):
+        timestamp_ms, value = hit["_source"]["timestamp"], hit["_source"]["value"]
         # Filter / Change ts values here
         counts_df.loc[i] = [int(np.round(timestamp_ms / 1000)), value]
 
     return counts_df
 
 
-def load_data_time_window(
+def load_data(
     consumer_host: str,
     consumer_id: int,
     consumer_key: str,
     lower_bound: Optional[int] = None,
     upper_bound: Optional[int] = None,
+    query_size: Optional[int] = None,
+    query_time_order: str = "asc",
 ) -> pd.DataFrame:
     """
-    Uses the scroll API to get all data from an index within the given time window.
+    Uses the scroll API to get all data from an index.
     Args:
         consumer_host: host of the consumer
         consumer_id: id of the consumer
         consumer_key: bearer token of the consumer. Must start with 'Bearer ey'
         lower_bound: The lower threshold which our data has to be >= . If not given then there is no lower bound.
         upper_bound: The upper threshold which our data has to be <= . If not given then there is no upper bound.
+        query_size: The query size. If not given then there is no limit. If given, it MUST be >= 0.
+        query_time_order: Time order of the query. Possible values are {"asc", "desc"}.
+            Note that the returned time order is always ascending.
 
     Returns: Count and timestamp in a pandas data frame
 
     """
+    assert query_time_order in {"asc", "desc"}, 'Query time order can either be "asc" or "desc"!'
+    consumer_scroll_api = consumer_scroll_api_template.format(consumer_host, consumer_id, scroll_open_timeout)
     consumer_scroll_api_header = {
         "Authorization": consumer_key,
         "Content-Type": "application/json",
         "Connection": "keep-alive",
     }
-    consumer_scroll_api = consumer_scroll_api_template.format(consumer_host, consumer_id, scroll_open_timeout)
     query = {}
     if lower_bound is not None:
         lower_bound_query = {"range": {"timestamp": {"gte": int(lower_bound) * 1000}}}
@@ -76,7 +86,7 @@ def load_data_time_window(
             {
                 "size": entries_per_request,
                 "query": query,
-                "sort": {"timestamp": "asc"},
+                "sort": {"timestamp": query_time_order},
             }
         ),
     )
@@ -85,7 +95,7 @@ def load_data_time_window(
     hits = payload["body"]["hits"]
     total_hits = hits["total"]
     while True:
-        if total_hits <= len(hits["hits"]):
+        if total_hits <= len(hits["hits"]) or (query_size is not None and query_size <= len(hits["hits"])):
             break
         response = requests.get(
             url=consumer_scroll_api,
@@ -98,23 +108,9 @@ def load_data_time_window(
         hits["total"] = next_hits["total"]
         scroll_id = payload["body"]["_scroll_id"]
 
-    hits_list = hits["hits"]
-    data_range = range(total_hits)
-    return create_data_frame_from_hits(hits_list, data_range)
-
-
-def load_data(consumer_host: str, consumer_id: int, consumer_key: str) -> pd.DataFrame:
-    """
-    Uses the scroll API to get all data from an index
-    Args:
-        consumer_host: host of the consumer
-        consumer_id: id of the consumer
-        consumer_key: bearer token of the consumer. Must start with 'Bearer ey'
-
-    Returns: Count and timestamp in a pandas data frame
-
-    """
-    return load_data_time_window(consumer_host, consumer_id, consumer_key)
+    hits_list = hits["hits"] if query_size is None else hits["hits"][:query_size]
+    data_range = range(len(hits_list))
+    return create_data_frame_from_hits(hits_list, data_range, query_time_order == "desc")
 
 
 def load_latest_data(consumer_host: str, consumer_id: int, consumer_key: str, latest_entries: int) -> pd.DataFrame:
@@ -128,32 +124,4 @@ def load_latest_data(consumer_host: str, consumer_id: int, consumer_key: str, la
     Returns: Count and timestamp in a pandas data frame
 
     """
-    if search_api_max_entries_per_request < latest_entries:
-        raise Exception(
-            "Desired number of latest entries with {} exceeds limit of {} allowed entries for this request.".format(
-                str(latest_entries), str(search_api_max_entries_per_request)
-            )
-        )
-    consumer_search_api_header = {
-        "Authorization": consumer_key,
-        "Content-Type": "application/json",
-        "Connection": "keep-alive",
-    }
-    consumer_search_api = consumer_search_api_template.format(consumer_host, consumer_id, latest_entries)
-    response = requests.get(
-        url=consumer_search_api,
-        headers=consumer_search_api_header,
-        verify=False,
-        data=json.dumps(
-            {
-                "query": {"match_all": {}},
-                "sort": {"timestamp": "desc"},
-            }
-        ),
-    )
-    payload = response.json()
-    hits = payload["body"]["hits"]
-    # we must reverse. Maybe there is a way to do this better in the request
-    hits_list = hits["hits"][::-1]
-    data_range = range(len(hits_list))
-    return create_data_frame_from_hits(hits_list, data_range)
+    return load_data(consumer_host, consumer_id, consumer_key, query_size=latest_entries, query_time_order="desc")

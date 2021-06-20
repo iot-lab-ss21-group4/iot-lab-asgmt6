@@ -47,10 +47,8 @@ class ForecastEvaluatorThread(threading.Thread):
         self.forecast_buffer[model_type].append((t, y))
         earliest_forecast_t = self.forecast_buffer[model_type][0][0]
         relevant_targets, y_column = self.data_fetcher.fetch_time_window(lower_bound=earliest_forecast_t)
-        if (
-            relevant_targets.shape[0] == 0
-            or relevant_targets.loc[relevant_targets.index[0], TIME_COLUMN] > earliest_forecast_t
-        ):
+        earliest_target_t = relevant_targets.loc[relevant_targets.index[0], TIME_COLUMN]
+        if relevant_targets.shape[0] == 0 or earliest_target_t > earliest_forecast_t:
             # TODO: load relevant_targets.shape[0] + 1 many target datapoints this time.
             pass
 

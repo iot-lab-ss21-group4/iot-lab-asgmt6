@@ -1,7 +1,7 @@
 from typing import Any, Dict, Optional, Tuple
 
 import pandas as pd
-from iotlab_utils.data_loader import load_data_time_window, load_latest_data
+from iotlab_utils.data_loader import load_data, load_latest_data
 from iotlab_utils.data_manager import TIME_COLUMN, UNIVARIATE_DATA_COLUMN
 
 
@@ -25,16 +25,22 @@ class DataFetcher:
             UNIVARIATE_DATA_COLUMN,
         )
 
-    def fetch_time_window(
-        self, lower_bound: Optional[int] = None, upper_bound: Optional[int] = None
+    def fetch(
+        self,
+        lower_bound: Optional[int] = None,
+        upper_bound: Optional[int] = None,
+        query_size: Optional[int] = None,
+        query_order: str = "asc",
     ) -> Tuple[pd.DataFrame, str]:
         return (
-            load_data_time_window(
-                self.iot_platform_consumer_host,
-                self.iot_platform_consumer_id,
-                self.iot_platform_consumer_key,
-                lower_bound,
-                upper_bound,
+            load_data(
+                consumer_host=self.iot_platform_consumer_host,
+                consumer_id=self.iot_platform_consumer_id,
+                consumer_key=self.iot_platform_consumer_key,
+                lower_bound=lower_bound,
+                upper_bound=upper_bound,
+                query_size=query_size,
+                query_order=query_order,
             ),
             UNIVARIATE_DATA_COLUMN,
         )
