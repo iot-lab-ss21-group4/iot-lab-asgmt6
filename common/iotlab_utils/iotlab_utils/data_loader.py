@@ -26,7 +26,7 @@ def create_data_frame_from_hits(
 ) -> pd.DataFrame:
     if is_reversed:
         hits_list = reversed(hits_list)
-    counts_df = pd.DataFrame(index=data_range, columns=[TIME_COLUMN, UNIVARIATE_DATA_COLUMN])
+    counts_df = pd.DataFrame(index=list(data_range), columns=[TIME_COLUMN, UNIVARIATE_DATA_COLUMN])
     for i, hit in zip(data_range, hits_list):
         timestamp_ms, value = hit["_source"]["timestamp"], hit["_source"]["value"]
         # Filter / Change ts values here
