@@ -32,6 +32,9 @@ class ForecastEvaluatorThread(threading.Thread):
     def run(self):
         evaluation_rounds: List[Dict[str, Tuple[int, float, List[float]]]] = []
         while True:
+            model_type: str
+            t: int
+            y: float
             model_type, t, y = self.forecast_evaluator_in_q.get()
             round_index = 0
             while round_index < len(evaluation_rounds) and model_type in evaluation_rounds[round_index]:
@@ -48,9 +51,11 @@ class ForecastEvaluatorThread(threading.Thread):
                 acc_value = None
                 acc_values.append(acc_value)
             evaluation_rounds[round_index][model_type] = (t, y, acc_values)
-            self.platform_sensor_publisher.publish(ForecastEvaluatorThread.ACCURACY_SENSOR_PREFIX + model_type, t, acc_values)
+            self.platform_sensor_publisher.publish(
+                ForecastEvaluatorThread.ACCURACY_SENSOR_PREFIX + model_type.upper(), t, acc_values
+            )
 
-            if round_index >= ForecastEvaluatorThread.MODEL_COUNT:
+            if len(evaluation_rounds[round_index]) >= ForecastEvaluatorThread.MODEL_COUNT:
                 # Note that 't' for all models at this evaluation round must be the same!
                 # TODO: Find best y using strategy - model independent
                 best_y = None
