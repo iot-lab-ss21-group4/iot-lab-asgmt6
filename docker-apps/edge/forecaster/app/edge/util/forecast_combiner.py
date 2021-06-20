@@ -14,8 +14,7 @@ class ForecastCombiner:
         self.strategy = strategy
 
     def combine(self, model_results: Dict[str, Tuple[int, int, Accuracy]]) -> int:
-        self.strategy.apply(model_results)
-        return 0
+        return self.strategy.apply(model_results)
 
     @staticmethod
     def build_from_config(strategy: str):
