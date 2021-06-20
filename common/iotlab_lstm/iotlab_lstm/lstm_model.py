@@ -125,6 +125,7 @@ class StudentCountPredictor(nn.Module):
 
     def forecast(self, ts: pd.DataFrame, update_lag1_count: bool = True) -> pd.DataFrame:
         ts = pd.concat([self.look_back_buffer, ts], axis=0)
+        ts.reset_index(drop=True, inplace=True)
         _, _, ts, _ = prepare_data_with_features(ts)
         self.scale_data(ts)
 

@@ -1,8 +1,8 @@
 import pickle
 import queue
 import threading
-from collections import deque
 
+import pandas as pd
 import urllib3
 from edge.util.data_initializer import DataInitializer
 from edge.util.platform_sensor_publisher import PlatformSensorPublisher
@@ -37,9 +37,6 @@ class ForecasterThread(threading.Thread):
         self.model_blob_name = model_blob_name
 
     def run(self):
-        sequence_length = 0
-        latest_data, y_column = None, None
-        latest_forecasts = deque([])
         while True:
             pred_time = self.forecaster_in_q.get()
             try:
@@ -50,24 +47,15 @@ class ForecasterThread(threading.Thread):
                 response.close()
                 response.release_conn()
 
-            # Initialize data
-            if latest_data is None or model_fit.look_back_length != sequence_length:
-                sequence_length = model_fit.look_back_length
-                latest_data, y_column = self.data_initializer.initialize_data(sequence_length)
+            # Get the latest look back data for the forecast model.
+            latest_data, y_column = self.data_initializer.initialize_data(model_fit.look_back_length)
+            model_fit.update_look_back_buffer(latest_data)
 
             # Calculate the next prediction time.
-            latest_data = latest_data.append({TIME_COLUMN: pred_time}, ignore_index=True)
-            latest_data = model_fit.forecast(latest_data)
-            latest_data_row = latest_data.iloc[-1:]
-            forecast_value = int(latest_data_row.iloc[0][y_column])
-
-            latest_forecasts.append((pred_time, forecast_value))
+            forecast_data = model_fit.forecast(pd.DataFrame({TIME_COLUMN: [pred_time]}))
+            forecast_value = int(forecast_data.loc[forecast_data.index[-1], y_column])
+            forecast_value = min(45, max(0, forecast_value))
 
             # publish forecast result
             self.platform_sensor_publisher.publish(self.sensor_name, pred_time * 1000, forecast_value)
             self.forecast_evaluator_in_q.put((self.model_type, pred_time, forecast_value))
-
-            latest_forecasts.popleft()
-
-            # Remove oldest sequence element
-            latest_data = latest_data.iloc[1:]

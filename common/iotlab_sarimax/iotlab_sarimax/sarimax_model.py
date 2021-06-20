@@ -71,7 +71,7 @@ class SARIMAXWrapper:
         ts[y_column] = univariate_f(ts[TIME_COLUMN].to_numpy()).astype(DEFAULT_FLOAT_TYPE)
         ts[y_column] = ts[y_column].round()
 
-        return ts.loc[ts.index[self.look_back_length :], [TIME_COLUMN, y_column]]
+        return ts.loc[ts.index, [TIME_COLUMN, y_column]]
 
 
 def train(data: pd.DataFrame) -> SARIMAXWrapper:

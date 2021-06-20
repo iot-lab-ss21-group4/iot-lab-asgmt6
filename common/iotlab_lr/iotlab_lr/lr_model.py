@@ -32,6 +32,7 @@ class LrWrapper:
 
     def forecast(self, ts: pd.DataFrame) -> pd.DataFrame:
         ts = pd.concat([self.look_back_buffer, ts], axis=0)
+        ts.reset_index(drop=True, inplace=True)
         y_column, x_columns, ts, useless_rows = prepare_data_with_features(
             ts, detailed_seasonality=False, lag_order=self.lag_order
         )
