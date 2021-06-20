@@ -116,27 +116,31 @@ def prepare_data_with_features(
     return y_column, x_columns, ts, useless_rows
 
 
+def time_series_interpolate(t: np.ndarray, y: np.ndarray, t2: np.ndarray) -> np.ndarray:
+    time_scaler = MinMaxScaler().fit(t.reshape(-1, 1))
+    scaled_t: np.ndarray = time_scaler.transform(t.reshape(-1, 1))
+    univariate_f = interp1d(scaled_t.flatten(), y)
+    scaled_t2: np.ndarray = time_scaler.transform(t2.reshape(-1, 1))
+    return univariate_f(scaled_t2.flatten()).astype(DEFAULT_FLOAT_TYPE)
+
+
 def regularize_data(ts: pd.DataFrame, y_column: str) -> Tuple[pd.offsets.DateOffset, pd.DataFrame]:
     if ts.shape[0] <= 1:
         return ts
     avg_dt = (
         pd.Timestamp(ts.loc[ts.index[-1], TIME_COLUMN], unit="s") - pd.Timestamp(ts.loc[ts.index[0], TIME_COLUMN], unit="s")
     ) / (ts.shape[0] - 1)
-    time_scaler = MinMaxScaler().fit(ts[TIME_COLUMN].to_numpy().reshape((-1, 1)))
+    time_column = ts[TIME_COLUMN].to_numpy().reshape(-1, 1)
+    time_scaler = MinMaxScaler().fit(time_column)
     regular_time_col = "regular_{}".format(TIME_COLUMN)
-    ts[regular_time_col] = time_scaler.transform(ts[TIME_COLUMN].to_numpy().reshape((-1, 1)))
+    ts[regular_time_col] = time_scaler.transform(time_column)
     univariate_f = interp1d(ts[regular_time_col].to_numpy(), ts[y_column].to_numpy())
     ts[regular_time_col] = np.linspace(
         ts.loc[ts.index[0], regular_time_col], ts.loc[ts.index[-1], regular_time_col], num=ts.shape[0]
     )
 
-    def regularize_row(row: pd.Series) -> np.ndarray:
-        return univariate_f(row[regular_time_col])
-
-    ts[y_column] = ts.apply(regularize_row, axis=1).astype(DEFAULT_FLOAT_TYPE)
-    ts[TIME_COLUMN] = np.round(time_scaler.inverse_transform(ts[regular_time_col].to_numpy().reshape((-1, 1)))).astype(
-        np.int64
-    )
+    ts[y_column] = univariate_f(ts[regular_time_col].to_numpy()).astype(DEFAULT_FLOAT_TYPE)
+    ts[TIME_COLUMN] = np.round(time_scaler.inverse_transform(ts[regular_time_col].to_numpy().reshape(-1, 1))).astype(np.int64)
     ts.drop(columns=[regular_time_col], inplace=True)
     ts = index_from_time_column(ts)
     return pd.tseries.frequencies.to_offset(avg_dt), ts

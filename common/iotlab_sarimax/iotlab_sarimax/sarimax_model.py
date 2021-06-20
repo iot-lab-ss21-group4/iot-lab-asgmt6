@@ -10,8 +10,8 @@ from iotlab_utils.data_manager import (
     extract_features,
     prepare_data_with_features,
     regularize_data,
+    time_series_interpolate,
 )
-from scipy.interpolate import interp1d
 from sklearn.metrics import mean_squared_error
 from statsmodels.tsa.statespace.sarimax import SARIMAX, SARIMAXResultsWrapper
 
@@ -64,9 +64,9 @@ class SARIMAXWrapper:
         pred: pd.Series = self.model.forecast(forecast_size, exog=regular_ts.loc[regular_ts.index[1:], self.exog_columns])
         regular_ts.loc[regular_ts.index[1:], y_column] = pred.to_numpy()
         # Use regular time predictions and linear interpolation to estimate at the exact times.
-        univariate_f = interp1d(regular_ts[TIME_COLUMN].to_numpy(), regular_ts[y_column].to_numpy())
-        ts[y_column] = univariate_f(ts[TIME_COLUMN].to_numpy()).astype(DEFAULT_FLOAT_TYPE)
-        ts[y_column] = ts[y_column].round()
+        ts[y_column] = time_series_interpolate(
+            regular_ts[TIME_COLUMN].to_numpy(), regular_ts[y_column].to_numpy(), ts[TIME_COLUMN].to_numpy()
+        ).round()
 
         return ts.loc[ts.index, [TIME_COLUMN, y_column]]
 

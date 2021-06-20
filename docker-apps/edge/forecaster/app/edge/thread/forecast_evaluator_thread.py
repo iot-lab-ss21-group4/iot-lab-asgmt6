@@ -1,8 +1,9 @@
 import threading
 from collections import defaultdict, deque
 from queue import Queue
-from typing import Deque, Dict, List, Tuple
+from typing import Deque, Dict, List, Optional, Tuple
 
+import numpy as np
 import pandas as pd
 from common.iotlab_utils.iotlab_utils.data_manager import TIME_COLUMN
 from edge.util.accuracy import Accuracy, AccuracyCalculator
@@ -10,6 +11,7 @@ from edge.util.data_fetcher import DataFetcher
 from edge.util.forecast_combiner import ForecastCombiner
 from edge.util.kafka_count_publisher import KafkaCountPublisher
 from edge.util.platform_sensor_publisher import PlatformSensorPublisher
+from iotlab_utils.data_manager import time_series_interpolate
 
 
 class ForecastEvaluatorThread(threading.Thread):
@@ -43,12 +45,12 @@ class ForecastEvaluatorThread(threading.Thread):
         self.target_buffer: Dict[str, pd.DataFrame] = []
         self.forecast_buffer: Dict[str, Deque[Tuple[int, int]]] = defaultdict(deque)
         self.overlap_cnt: int = 0
+        self.y_column: Optional[str] = None
 
     def track_model_forecasts(self, model_type: str, t: int, y: int):
-        # TODO: update the target and forecast buffers and leave them in a valid state!
         self.forecast_buffer[model_type].append((t, y))
         earliest_forecast_t = self.forecast_buffer[model_type][0][0]
-        biggest_earlier_target, y_column = self.data_fetcher.fetch(
+        biggest_earlier_target, self.y_column = self.data_fetcher.fetch(
             upper_bound=earliest_forecast_t, query_size=1, query_time_order="desc"
         )
         relevant_targets, _ = self.data_fetcher.fetch(
@@ -79,12 +81,19 @@ class ForecastEvaluatorThread(threading.Thread):
 
         self.target_buffer[model_type] = relevant_targets
 
-    def get_target_and_forecast_pairs(self) -> Tuple[List[int], List[int]]:
-        # TODO: assuming the target and forecast buffers are in a valid state, return the longest list of target
+    def get_target_and_forecast_pairs(self, model_type: str) -> Tuple[List[int], List[int]]:
+        # Assuming the target and forecast buffers are in a valid state, return the longest list of target
         # and forecast values such that targets[0] <= forecasts[0] AND forecasts[-1] <= targets[-1].
-        targets: List[int] = []
-        forecasts: List[int] = []
-        return targets, forecasts
+        if self.overlap_cnt <= 0:
+            return [], []
+        forecast_ts, forecast_ys = tuple(zip(*[t_y for t_y in self.forecast_buffer[model_type]]))
+        target_values = time_series_interpolate(
+            self.target_buffer[model_type][TIME_COLUMN].to_numpy(),
+            self.target_buffer[model_type][self.y_column].to_numpy(),
+            np.array(forecast_ts),
+        ).round()
+
+        return target_values.tolist(), list(forecast_ys)
 
     def run(self):
         evaluation_rounds: List[Dict[str, Tuple[int, int, Accuracy]]] = []
@@ -102,7 +111,7 @@ class ForecastEvaluatorThread(threading.Thread):
             # Get the target and forecast values ready for accuracy metric calculations
             self.track_model_forecasts(model_type, t, y)
             # Get the target and forecast value pairs
-            real_counts, forecasts = self.get_target_and_forecast_pairs()
+            real_counts, forecasts = self.get_target_and_forecast_pairs(model_type)
             assert len(real_counts) == len(forecasts), "Target and forecast value pairs must be of equal size!"
             if len(real_counts) > 0:
                 # Perform accuracy metric calculations, since we have some target and forecast values
