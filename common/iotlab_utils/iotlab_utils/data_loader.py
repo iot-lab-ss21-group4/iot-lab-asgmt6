@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, Iterable, List
+from typing import Any, Dict, Iterable, List, Optional
 
 import numpy as np
 import pandas as pd
@@ -15,6 +15,15 @@ consumer_search_api_template = "https://{}:443/api/consumers/consume/{}/_search?
 search_api_max_entries_per_request = 10000
 
 
+def recursive_dict_update(d: Dict, u: Dict) -> Dict:
+    for k, v in u.items():
+        if isinstance(v, dict):
+            d[k] = recursive_dict_update(d.get(k, {}), v)
+        else:
+            d[k] = v
+    return d
+
+
 def create_data_frame_from_hits(hits_list: List[Dict[str, Any]], data_range: Iterable[int]) -> pd.DataFrame:
     counts_df = pd.DataFrame(index=data_range, columns=[TIME_COLUMN, UNIVARIATE_DATA_COLUMN])
     for i in data_range:
@@ -25,13 +34,21 @@ def create_data_frame_from_hits(hits_list: List[Dict[str, Any]], data_range: Ite
     return counts_df
 
 
-def load_data(consumer_host: str, consumer_id: int, consumer_key: str) -> pd.DataFrame:
+def load_data_time_window(
+    consumer_host: str,
+    consumer_id: int,
+    consumer_key: str,
+    lower_bound: Optional[int] = None,
+    upper_bound: Optional[int] = None,
+) -> pd.DataFrame:
     """
-    Uses the scroll API to get all data from an index
+    Uses the scroll API to get all data from an index within the given time window.
     Args:
         consumer_host: host of the consumer
         consumer_id: id of the consumer
         consumer_key: bearer token of the consumer. Must start with 'Bearer ey'
+        lower_bound: The lower threshold which our data has to be >= . If not given then there is no lower bound.
+        upper_bound: The upper threshold which our data has to be <= . If not given then there is no upper bound.
 
     Returns: Count and timestamp in a pandas data frame
 
@@ -42,6 +59,15 @@ def load_data(consumer_host: str, consumer_id: int, consumer_key: str) -> pd.Dat
         "Connection": "keep-alive",
     }
     consumer_scroll_api = consumer_scroll_api_template.format(consumer_host, consumer_id, scroll_open_timeout)
+    query = {}
+    if lower_bound is not None:
+        lower_bound_query = {"range": {"timestamp": {"gte": int(lower_bound)}}}
+        query = recursive_dict_update(query, lower_bound_query)
+    if upper_bound is not None:
+        upper_bound_query = {"range": {"timestamp": {"lte": int(upper_bound)}}}
+        query = recursive_dict_update(query, upper_bound_query)
+    if "range" not in query:
+        query = {"match_all": {}}
     response = requests.get(
         url=consumer_scroll_api,
         headers=consumer_scroll_api_header,
@@ -49,7 +75,7 @@ def load_data(consumer_host: str, consumer_id: int, consumer_key: str) -> pd.Dat
         data=json.dumps(
             {
                 "size": entries_per_request,
-                "query": {"match_all": {}},
+                "query": query,
                 "sort": {"timestamp": "asc"},
             }
         ),
@@ -75,6 +101,20 @@ def load_data(consumer_host: str, consumer_id: int, consumer_key: str) -> pd.Dat
     hits_list = hits["hits"]
     data_range = range(total_hits)
     return create_data_frame_from_hits(hits_list, data_range)
+
+
+def load_data(consumer_host: str, consumer_id: int, consumer_key: str) -> pd.DataFrame:
+    """
+    Uses the scroll API to get all data from an index
+    Args:
+        consumer_host: host of the consumer
+        consumer_id: id of the consumer
+        consumer_key: bearer token of the consumer. Must start with 'Bearer ey'
+
+    Returns: Count and timestamp in a pandas data frame
+
+    """
+    return load_data_time_window(consumer_host, consumer_id, consumer_key)
 
 
 def load_latest_data(consumer_host: str, consumer_id: int, consumer_key: str, latest_entries: int) -> pd.DataFrame:
