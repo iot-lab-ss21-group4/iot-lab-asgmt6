@@ -91,9 +91,7 @@ def load_data(
     scroll_id: str = payload_body["_scroll_id"]
     hits: Dict[str, Any] = payload_body["hits"]
     total_hits: int = hits["total"]
-    while True:
-        if total_hits <= len(hits["hits"]) or (query_size is not None and query_size <= len(hits["hits"])):
-            break
+    while len(hits["hits"]) < total_hits and (query_size is None or len(hits["hits"]) < query_size):
         response = requests.get(
             url=consumer_scroll_api,
             headers=consumer_scroll_api_header,
