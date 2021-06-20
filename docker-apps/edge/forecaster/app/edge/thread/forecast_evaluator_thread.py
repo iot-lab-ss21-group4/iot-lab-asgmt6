@@ -49,17 +49,12 @@ class ForecastEvaluatorThread(threading.Thread):
             # TODO: how to get newest observation? continuous polling?
             # TODO: compute accuracies and publish results
             # TODO: remove oldest forecast element if evaluation was possible
-            acc_values = []
-            for acc_metric in ForecastEvaluatorThread.ACCURACY_METRIC_NAMES:
-                acc_value = None
-                acc_values.append(acc_value)
             # TODO: feed with real data
             accuracy = self.accuracy_calculator.compute_accuracy_metrics(real_counts=[1, 2, 3], forecasts=[2, 3, 4])
-            self.platform_sensor_publisher.publish(ForecastEvaluatorThread.ACCURACY_SENSOR_PREFIX + model_type, t, accuracy)
-            evaluation_rounds[round_index][model_type] = (t, y, accuracy)
             self.platform_sensor_publisher.publish(
-                ForecastEvaluatorThread.ACCURACY_SENSOR_PREFIX + model_type.upper(), t, acc_values
+                ForecastEvaluatorThread.ACCURACY_SENSOR_PREFIX + model_type.upper(), t, accuracy._asdict()
             )
+            evaluation_rounds[round_index][model_type] = (t, y, accuracy)
 
             if len(evaluation_rounds[round_index]) >= ForecastEvaluatorThread.MODEL_COUNT:
                 # Note that 't' for all models at this evaluation round must be the same!
