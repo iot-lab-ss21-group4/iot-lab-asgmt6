@@ -31,6 +31,7 @@ def setup(args: argparse.Namespace):
         platform_sensor_publisher=platform_sensor_publisher,
         kafka_count_publisher=kafka_count_publisher,
         number_of_models=len(settings["forecast_models"]),
+        accuracy_calculator=settings["accuracy_calculator_settings"],
     )
     all_threads.append(forecast_evaluator_thread)
 
