@@ -79,7 +79,7 @@ class ForecastEvaluatorThread(threading.Thread):
             assert len(real_counts) == len(forecasts), "Target and forecast value pairs must be of equal size!"
             if len(real_counts) > 0:
                 # Perform accuracy metric calculations, since we have some target and forecast values
-                accuracy = self.accuracy_calculator.compute_accuracy_metrics(real_counts=[1, 2, 3], forecasts=[2, 3, 4])
+                accuracy = self.accuracy_calculator.compute_accuracy_metrics(real_counts=real_counts, forecasts=forecasts)
                 self.platform_sensor_publisher.publish(
                     ForecastEvaluatorThread.ACCURACY_SENSOR_PREFIX + model_type.upper(), t, accuracy._asdict()
                 )
@@ -88,7 +88,6 @@ class ForecastEvaluatorThread(threading.Thread):
             # Check if all models submitted their forecasts for this evaluation round.
             if len(evaluation_rounds[round_index]) >= ForecastEvaluatorThread.MODEL_COUNT:
                 # Note that 't' for all models at this evaluation round must be the same!
-                # TODO: Find best y using strategy
                 best_y = self.forecast_combiner.combine(evaluation_rounds[round_index])
                 self.platform_sensor_publisher.publish(ForecastEvaluatorThread.BEST_ONLINE_SENSOR_NAME, t, best_y)
                 self.kafka_count_publisher.publish(best_y)

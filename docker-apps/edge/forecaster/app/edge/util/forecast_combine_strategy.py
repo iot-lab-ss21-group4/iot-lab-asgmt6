@@ -1,6 +1,6 @@
 import operator
 from abc import ABC, abstractmethod
-from typing import Dict, Tuple, Iterable
+from typing import Dict, Tuple, Iterable, List
 
 from edge.util.accuracy import Accuracy
 
@@ -48,5 +48,46 @@ class WeightedCombinationStrategy(ForecastCombineStrategy):
 
 
 class MajorityRuleStrategy(ForecastCombineStrategy):
+    class Bucket:
+        def __init__(self, fixpoint: int, bucket_length: int):
+            self.fixpoint = fixpoint
+            self.bucket_length = bucket_length
+            self.elements = 0
+
+        @property
+        def min(self):
+            return self.fixpoint - self.bucket_length
+
+        @property
+        def max(self):
+            if self.bucket_length == 0:
+                return self.fixpoint
+            return self.fixpoint + self.bucket_length - 1
+
+        def fill(self, point):
+            # the < operator ensures that growing to the left starts earlier and avoids two buckets with same number of elements
+            # this gives higher fixpoints/forecasts an advantage
+            if self.fixpoint - self.bucket_length <= point < self.fixpoint + self.bucket_length:
+                self.elements += 1
+
+        def intersect(self, other):
+            return other.min <= self.max and other.max <= self.max or self.min <= other.min <= self.max
+
     def apply(self, model_results: Dict[str, Tuple[int, int, Accuracy]]) -> int:
-        pass
+        forecasts = [model_result[1] for model_result in model_results.values()]
+        for bucket_length in range(1, 45):
+            buckets = self.init_buckets(bucket_length, forecasts)
+            for f in forecasts:
+                for b in buckets:
+                    b.fill(f)
+            max_elements = max(bucket.elements for bucket in buckets)
+            winner_buckets = [bucket for bucket in buckets if bucket.elements == max_elements]
+            if len(winner_buckets) == 1:
+                return winner_buckets[0].fixpoint
+
+        # TODO: use logger
+        print("Error in strategy")
+        return list(model_results.values())[0][1]
+
+    def init_buckets(self, bucket_length: int, fixpoints: List[int]) -> List[Bucket]:
+        return [MajorityRuleStrategy.Bucket(fp, bucket_length) for fp in fixpoints]

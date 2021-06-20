@@ -1,7 +1,7 @@
 import unittest
 
 from edge.util.accuracy import AccuracyCalculator
-from edge.util.forecast_combine_strategy import SelectMostAccurateStrategy
+from edge.util.forecast_combine_strategy import SelectMostAccurateStrategy, MajorityRuleStrategy
 from edge.util.forecast_combiner import ForecastCombiner
 
 
@@ -25,5 +25,10 @@ class TestForecastCombineStrategy(unittest.TestCase):
 
     def test_select_most_accurate_strategy(self):
         combiner = ForecastCombiner(SelectMostAccurateStrategy())
+        y = combiner.combine(self.model_results)
+        self.assertEqual(self.forecast_model_1, y)
+
+    def test_majority_rule_strategy(self):
+        combiner = ForecastCombiner(MajorityRuleStrategy())
         y = combiner.combine(self.model_results)
         self.assertEqual(self.forecast_model_1, y)
