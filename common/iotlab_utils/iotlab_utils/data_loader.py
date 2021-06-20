@@ -87,10 +87,10 @@ def load_data(
             }
         ),
     )
-    payload = response.json()
-    scroll_id = payload["body"]["_scroll_id"]
-    hits = payload["body"]["hits"]
-    total_hits = hits["total"]
+    payload_body: Dict[str, Any] = response.json()["body"]
+    scroll_id: str = payload_body["_scroll_id"]
+    hits: Dict[str, Any] = payload_body["hits"]
+    total_hits: int = hits["total"]
     while True:
         if total_hits <= len(hits["hits"]) or (query_size is not None and query_size <= len(hits["hits"])):
             break
@@ -100,12 +100,13 @@ def load_data(
             verify=False,
             data=json.dumps({"scroll_id": scroll_id, "scroll": scroll_open_timeout}),
         )
-        next_hits = response.json()["body"]["hits"]
+        next_payload_body: Dict[str, Any] = response.json()["body"]
+        next_hits: Dict[str, Any] = next_payload_body["hits"]
         hits["hits"].extend(next_hits["hits"])
-        hits["total"] = next_hits["total"]
-        scroll_id = payload["body"]["_scroll_id"]
+        total_hits = hits["total"] = next_hits["total"]
+        scroll_id = next_payload_body["_scroll_id"]
 
-    hits_list = hits["hits"] if query_size is None else hits["hits"][:query_size]
+    hits_list: List[Dict[str, Any]] = hits["hits"] if query_size is None else hits["hits"][:query_size]
     data_range = range(len(hits_list))
     return create_data_frame_from_hits(hits_list, data_range, query_time_order == "desc")
 
