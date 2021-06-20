@@ -1,30 +1,26 @@
+from collections import namedtuple
 from math import sqrt
 from typing import List, Dict, Any
 
-
-class Accuracy:
-    def __init__(self, mae, rmse, mape, smape, mase, ias):
-        self.mae = mae
-        self.rmse = rmse
-        self.mape = mape
-        self.smape = smape
-        self.mase = mase
-        self.ias = ias
+ACCURACY_METRICS = "mae rmse mape smape mase"
+Accuracy = namedtuple("Accuracy", ACCURACY_METRICS)
 
 
 class AccuracyCalculator:
-    def __init__(self, accuracy_config: Dict[str, Any]):
-        self.ias_quantile = float(accuracy_config["ias_quantile"])
-        self.ias_sig_alpha = float(accuracy_config["ias_sig_alpha"])
+    def __init__(self):
+        # TODO: check if ias necessary in next meeting
+        self.ias_quantile = 2.58
+        self.ias_sig_alpha = 0.01
+        # self.ias_quantile = float(accuracy_config["ias_quantile"])
+        # self.ias_sig_alpha = float(accuracy_config["ias_sig_alpha"])
 
-    def compute_accuracy_metrics(self, real_counts: List[int], forecasts: List[int], forecasts_train: List[int]):
+    def compute_accuracy_metrics(self, real_counts: List[int], forecasts: List[int]):
         return Accuracy(
             mae=AccuracyCalculator.mean_absolute_error(real_counts, forecasts),
             rmse=AccuracyCalculator.root_mean_squared_error(real_counts, forecasts),
             mape=AccuracyCalculator.root_mean_squared_error(real_counts, forecasts),
             smape=AccuracyCalculator.symmetric_mean_absolute_percentage_error(real_counts, forecasts),
-            mase=AccuracyCalculator.mean_absolute_scaled_error(real_counts, forecasts, forecasts_train),
-            ias=AccuracyCalculator.interval_accuracy_score(real_counts, forecasts, self.ias_quantile, self.ias_sig_alpha),
+            mase=AccuracyCalculator.mean_absolute_scaled_error(real_counts, forecasts),
         )
 
     @staticmethod
@@ -48,8 +44,8 @@ class AccuracyCalculator:
         return sum(errors) / len(errors)
 
     @staticmethod
-    def mean_absolute_scaled_error(ys_real: List[int], ys_pred: List[int], ys_train_pred: List[int]) -> float:
-        base = AccuracyCalculator.mean_absolute_error(ys_train_pred[1:], ys_train_pred[:-1])
+    def mean_absolute_scaled_error(ys_real: List[int], ys_pred: List[int]) -> float:
+        base = AccuracyCalculator.mean_absolute_error(ys_real[1:], ys_real[:-1])
         forecasts_error_mean = AccuracyCalculator.mean_absolute_error(ys_real, ys_pred)
         return forecasts_error_mean / base
 

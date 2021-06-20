@@ -30,6 +30,7 @@
         "iot_platform_consumer_key" : ""
       }
     }
-  ]
+  ],
+  "forecast_combine_strategy": "select_most_accurate"
 }
 
