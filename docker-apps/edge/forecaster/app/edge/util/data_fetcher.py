@@ -13,7 +13,7 @@ class DataFetcher:
 
     def fetch_latest(self, look_back_length: int) -> Tuple[pd.DataFrame, str]:
         if look_back_length <= 0:
-            return pd.DataFrame(columns=[TIME_COLUMN, UNIVARIATE_DATA_COLUMN])
+            return pd.DataFrame(columns=[TIME_COLUMN, UNIVARIATE_DATA_COLUMN]), UNIVARIATE_DATA_COLUMN
 
         return (
             load_latest_data(
