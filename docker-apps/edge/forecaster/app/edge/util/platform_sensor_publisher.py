@@ -10,7 +10,6 @@ class IotPlatformSettings:
         self.iot_platform_gateway_ip = data["iot_platform_gateway_ip"]
         self.iot_platform_gateway_port = data["iot_platform_gateway_port"]
         self.iot_platform_group_name = data["iot_platform_group_name"]
-        self.iot_platform_sensor_name = data["iot_platform_sensor_name"]
         self.iot_platform_user_id = data["iot_platform_user_id"]
         self.iot_platform_device_id = data["iot_platform_device_id"]
         self.iot_platform_gateway_password = data["iot_platform_gateway_password"]
