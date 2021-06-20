@@ -24,6 +24,7 @@ class ForecastEvaluatorThread(threading.Thread):
         number_of_models: int,
         accuracy_calculator: AccuracyCalculator,
         forecast_combiner: ForecastCombiner,
+        max_acc_samples: int = 5,
     ):
         super().__init__()
         self.forecast_evaluator_in_q = event_in_q
@@ -32,12 +33,14 @@ class ForecastEvaluatorThread(threading.Thread):
         self.number_of_accuracy_values = number_of_models * len(ForecastEvaluatorThread.ACCURACY_METRIC_NAMES)
         self.accuracy_calculator = accuracy_calculator
         self.forecast_combiner = forecast_combiner
+        self.max_acc_samples = max_acc_samples
 
-        self.target_buffer: List[int] = []
-        self.forecast_buffer: Dict[str, List[int]] = defaultdict(list)
+        self.target_buffer: List[Tuple[int, int]] = []
+        self.forecast_buffer: Dict[str, List[Tuple[int, int]]] = defaultdict(list)
 
     def track_model_forecasts(self, model_type: str, t: int, y: int):
         # TODO: update the target and forecast buffers and leave them in a valid state!
+        self.forecast_buffer[model_type].append((t, y))
         pass
 
     def get_target_and_forecast_pairs(self) -> Tuple[List[int], List[int]]:

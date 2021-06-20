@@ -61,10 +61,10 @@ def load_data_time_window(
     consumer_scroll_api = consumer_scroll_api_template.format(consumer_host, consumer_id, scroll_open_timeout)
     query = {}
     if lower_bound is not None:
-        lower_bound_query = {"range": {"timestamp": {"gte": int(lower_bound)}}}
+        lower_bound_query = {"range": {"timestamp": {"gte": int(lower_bound) * 1000}}}
         query = recursive_dict_update(query, lower_bound_query)
     if upper_bound is not None:
-        upper_bound_query = {"range": {"timestamp": {"lte": int(upper_bound)}}}
+        upper_bound_query = {"range": {"timestamp": {"lte": int(upper_bound) * 1000}}}
         query = recursive_dict_update(query, upper_bound_query)
     if "range" not in query:
         query = {"match_all": {}}
