@@ -15,9 +15,6 @@ from scipy.interpolate import interp1d
 from sklearn.metrics import mean_squared_error
 from statsmodels.tsa.statespace.sarimax import SARIMAX, SARIMAXResultsWrapper
 
-# TODO
-# LAG and number of elements in times might not work together if times list is too small
-
 
 class SARIMAXWrapper:
     def __init__(

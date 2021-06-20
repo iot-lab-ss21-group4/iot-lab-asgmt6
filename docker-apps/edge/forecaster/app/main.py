@@ -19,7 +19,6 @@ def setup(args: argparse.Namespace):
     with open(args.settings_file, "rt") as f:
         settings: Dict[str, Any] = json.load(f)
 
-    # TODO: waiting for answer on moodle
     # create singleton mqtt publisher
     # under the assumption that one device (topic: username_deviceId) is sufficient
     platform_sensor_publisher = PlatformSensorPublisher(settings["iot_platform_mqtt_settings"])
