@@ -24,18 +24,20 @@ class SelectMostAccurateStrategy(ForecastCombineStrategy):
         return model_results[winner][1]
 
     def find_best_per_metric(self, model_results: Dict[str, Tuple[int, int, Accuracy]]) -> Iterable[str]:
-        # TODO: bit spaghetti and not tested yet
         model_results_list = list(model_results.items())
         first_model, result = model_results_list[0]
         accuracy: Accuracy = result[2]
+        # iterate over the accuracy fields using the first model_result as reference
         for accuracy_name in accuracy._fields:
+            # init wih result of first model
             model_winner, best_accuracy = first_model, getattr(accuracy, accuracy_name)
             for i in range(1, len(model_results_list)):
                 model, model_result = model_results_list[i]
-                accuracy = getattr(model_result[2], accuracy_name)
-                if accuracy < best_accuracy:
+                other_accuracy = getattr(model_result[2], accuracy_name)
+                # check if better accuracy exists and overwrite
+                if other_accuracy < best_accuracy:
                     model_winner = model
-                    best_accuracy = accuracy
+                    best_accuracy = other_accuracy
             yield model_winner
 
 
