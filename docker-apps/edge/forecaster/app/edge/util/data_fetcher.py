@@ -30,7 +30,7 @@ class DataFetcher:
         lower_bound: Optional[int] = None,
         upper_bound: Optional[int] = None,
         query_size: Optional[int] = None,
-        query_order: str = "asc",
+        query_time_order: str = "asc",
     ) -> Tuple[pd.DataFrame, str]:
         return (
             load_data(
@@ -40,7 +40,7 @@ class DataFetcher:
                 lower_bound=lower_bound,
                 upper_bound=upper_bound,
                 query_size=query_size,
-                query_order=query_order,
+                query_time_order=query_time_order,
             ),
             UNIVARIATE_DATA_COLUMN,
         )
