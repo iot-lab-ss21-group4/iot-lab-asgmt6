@@ -1,7 +1,7 @@
 import threading
-from collections import defaultdict
+from collections import defaultdict, deque
 from queue import Queue
-from typing import Dict, List, Tuple
+from typing import Deque, Dict, List, Tuple
 
 import pandas as pd
 from common.iotlab_utils.iotlab_utils.data_manager import TIME_COLUMN
@@ -28,7 +28,7 @@ class ForecastEvaluatorThread(threading.Thread):
         number_of_models: int,
         accuracy_calculator: AccuracyCalculator,
         forecast_combiner: ForecastCombiner,
-        max_acc_samples: int = 5,
+        max_overlap_cnt: int = 5,
     ):
         super().__init__()
         self.forecast_evaluator_in_q = event_in_q
@@ -38,10 +38,11 @@ class ForecastEvaluatorThread(threading.Thread):
         self.number_of_accuracy_values = number_of_models * len(ForecastEvaluatorThread.ACCURACY_METRIC_NAMES)
         self.accuracy_calculator = accuracy_calculator
         self.forecast_combiner = forecast_combiner
-        self.max_acc_samples = max_acc_samples
+        self.max_overlap_cnt = max_overlap_cnt
 
         self.target_buffer: Dict[str, pd.DataFrame] = []
-        self.forecast_buffer: Dict[str, List[Tuple[int, int]]] = defaultdict(list)
+        self.forecast_buffer: Dict[str, Deque[Tuple[int, int]]] = defaultdict(deque)
+        self.overlap_cnt: int = 0
 
     def track_model_forecasts(self, model_type: str, t: int, y: int):
         # TODO: update the target and forecast buffers and leave them in a valid state!
@@ -53,8 +54,30 @@ class ForecastEvaluatorThread(threading.Thread):
         relevant_targets, _ = self.data_fetcher.fetch(
             lower_bound=biggest_earlier_target.loc[biggest_earlier_target.index[0], TIME_COLUMN]
         )
+
+        # Make sure that there are at most self.max_acc_samples overlapping forecast values
+        self.overlap_cnt = 0
+        latest_relevant_target_t = relevant_targets.loc[relevant_targets.index[-1], TIME_COLUMN]
+        for t, _ in self.forecast_buffer[model_type]:
+            if t > latest_relevant_target_t:
+                break
+            self.overlap_cnt += 1
+        excess_forecast_cnt = max(0, self.overlap_cnt - self.max_overlap_cnt)
+        # Get rid of excessive overlapping forecast values
+        for _ in range(excess_forecast_cnt):
+            self.forecast_buffer[model_type].popleft()
+        earliest_forecast_t = self.forecast_buffer[model_type][0][0]
+        # Adjust and reduce the number of targets accordingly
+        biggest_earlier_index = 0
+        while biggest_earlier_index < relevant_targets.shape[0]:
+            cur_t = relevant_targets.loc[relevant_targets.index[biggest_earlier_index], TIME_COLUMN]
+            if cur_t > earliest_forecast_t:
+                break
+            biggest_earlier_index += 1
+        biggest_earlier_index = max(0, biggest_earlier_index - 1)
+        relevant_targets = relevant_targets.iloc[biggest_earlier_index:].copy()
+
         self.target_buffer[model_type] = relevant_targets
-        pass
 
     def get_target_and_forecast_pairs(self) -> Tuple[List[int], List[int]]:
         # TODO: assuming the target and forecast buffers are in a valid state, return the longest list of target
