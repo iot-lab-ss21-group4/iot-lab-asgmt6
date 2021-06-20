@@ -2,7 +2,7 @@ import threading
 from queue import Queue
 from typing import Dict, List, Tuple
 
-from edge.util.accuracy import AccuracyCalculator, Accuracy
+from edge.util.accuracy import Accuracy, AccuracyCalculator
 from edge.util.forecast_combiner import ForecastCombiner
 from edge.util.kafka_count_publisher import KafkaCountPublisher
 from edge.util.platform_sensor_publisher import PlatformSensorPublisher
@@ -67,3 +67,4 @@ class ForecastEvaluatorThread(threading.Thread):
                 best_y = self.forecast_combiner.combine(evaluation_rounds[round_index])
                 self.platform_sensor_publisher.publish(ForecastEvaluatorThread.BEST_ONLINE_SENSOR_NAME, t, best_y)
                 self.kafka_count_publisher.publish(best_y)
+                del evaluation_rounds[round_index]
