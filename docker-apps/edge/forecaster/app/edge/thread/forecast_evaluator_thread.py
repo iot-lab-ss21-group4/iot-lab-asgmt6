@@ -3,6 +3,8 @@ from collections import defaultdict
 from queue import Queue
 from typing import Dict, List, Tuple
 
+import pandas as pd
+from common.iotlab_utils.iotlab_utils.data_manager import TIME_COLUMN
 from edge.util.accuracy import Accuracy, AccuracyCalculator
 from edge.util.data_fetcher import DataFetcher
 from edge.util.forecast_combiner import ForecastCombiner
@@ -38,14 +40,20 @@ class ForecastEvaluatorThread(threading.Thread):
         self.forecast_combiner = forecast_combiner
         self.max_acc_samples = max_acc_samples
 
-        self.target_buffer: Dict[str, List[Tuple[int, int]]] = defaultdict(list)
+        self.target_buffer: Dict[str, pd.DataFrame] = []
         self.forecast_buffer: Dict[str, List[Tuple[int, int]]] = defaultdict(list)
 
     def track_model_forecasts(self, model_type: str, t: int, y: int):
         # TODO: update the target and forecast buffers and leave them in a valid state!
         self.forecast_buffer[model_type].append((t, y))
         earliest_forecast_t = self.forecast_buffer[model_type][0][0]
-        biggest_earlier_target, y_column = self.data_fetcher.fetch(upper_bound=earliest_forecast_t, query_time_order="desc")
+        biggest_earlier_target, y_column = self.data_fetcher.fetch(
+            upper_bound=earliest_forecast_t, query_size=1, query_time_order="desc"
+        )
+        relevant_targets, _ = self.data_fetcher.fetch(
+            lower_bound=biggest_earlier_target.loc[biggest_earlier_target.index[0], TIME_COLUMN]
+        )
+        self.target_buffer[model_type] = relevant_targets
         pass
 
     def get_target_and_forecast_pairs(self) -> Tuple[List[int], List[int]]:
