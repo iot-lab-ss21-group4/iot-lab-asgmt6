@@ -1,6 +1,6 @@
 import operator
 from abc import ABC, abstractmethod
-from typing import Dict, Tuple, Iterable, List
+from typing import Dict, Iterable, List, Tuple
 
 from edge.util.accuracy import Accuracy
 
@@ -65,8 +65,8 @@ class MajorityRuleStrategy(ForecastCombineStrategy):
             return self.fixpoint + self.bucket_length - 1
 
         def fill(self, point):
-            # the < operator ensures that growing to the left starts earlier and avoids two buckets with same number of elements
-            # this gives higher fixpoints/forecasts an advantage
+            # the < operator ensures that growing to the left starts earlier and avoids two buckets with same
+            # number of elements this gives higher fixpoints/forecasts an advantage
             if self.fixpoint - self.bucket_length <= point < self.fixpoint + self.bucket_length:
                 self.elements += 1
 

@@ -1,9 +1,13 @@
-from collections import namedtuple
 from math import sqrt
-from typing import List, Dict, Any
+from typing import List, NamedTuple
 
-ACCURACY_METRICS = "mae rmse mape smape mase"
-Accuracy = namedtuple("Accuracy", ACCURACY_METRICS)
+
+class Accuracy(NamedTuple):
+    mae: float
+    rmse: float
+    mape: float
+    smape: float
+    mase: float
 
 
 class AccuracyCalculator:

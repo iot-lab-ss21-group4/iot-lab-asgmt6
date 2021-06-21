@@ -1,7 +1,7 @@
 import unittest
 
 from edge.util.accuracy import AccuracyCalculator
-from edge.util.forecast_combine_strategy import SelectMostAccurateStrategy, MajorityRuleStrategy
+from edge.util.forecast_combine_strategy import MajorityRuleStrategy, SelectMostAccurateStrategy
 from edge.util.forecast_combiner import ForecastCombiner
 
 
