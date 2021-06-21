@@ -87,11 +87,15 @@ class ForecastEvaluatorThread(threading.Thread):
         if self.overlap_cnt <= 0:
             return [], []
         forecast_ts, forecast_ys = tuple(zip(*[t_y for t_y in self.forecast_buffer[model_type]]))
-        target_values = time_series_interpolate(
-            self.target_buffer[model_type][TIME_COLUMN].to_numpy(),
-            self.target_buffer[model_type][self.y_column].to_numpy(),
-            np.array(forecast_ts),
-        ).round()
+        target_values = (
+            time_series_interpolate(
+                self.target_buffer[model_type][TIME_COLUMN].to_numpy(),
+                self.target_buffer[model_type][self.y_column].to_numpy(),
+                np.array(forecast_ts),
+            )
+            .round()
+            .astype(np.int64)
+        )
 
         return target_values.tolist(), list(forecast_ys)
 
