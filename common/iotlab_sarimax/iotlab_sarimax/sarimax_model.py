@@ -5,7 +5,6 @@ import numpy as np
 import optuna
 import pandas as pd
 from iotlab_utils.data_manager import (
-    DEFAULT_FLOAT_TYPE,
     TIME_COLUMN,
     extract_features,
     prepare_data_with_features,
@@ -49,15 +48,15 @@ class SARIMAXWrapper:
         pred_time = ts.loc[ts.index[-1], TIME_COLUMN]
         # Uses freq and last_t to forecast beyond the last datapoint and
         # uses interpolation to predict exactly at the datapoint times.
-        last_t = self.look_back_buffer[self.look_back_buffer.index[-1], TIME_COLUMN]
-        last_y = self.look_back_buffer[self.look_back_buffer.index[-1], y_column]
+        last_t = self.look_back_buffer.loc[self.look_back_buffer.index[-1], TIME_COLUMN]
+        last_y = self.look_back_buffer.loc[self.look_back_buffer.index[-1], y_column]
         avg_dt_sec = self.avg_dt.delta.total_seconds()
         forecast_size = int(np.ceil((pred_time - last_t) / avg_dt_sec))
-        times, ys = [last_t], [last_y] + [DEFAULT_FLOAT_TYPE()] * forecast_size
+        times, ys = [last_t], [last_y] + [type(last_y)()] * forecast_size
         for i in range(1, forecast_size + 1):
             times.append(last_t + int(np.round(i * avg_dt_sec)))
         regular_ts = pd.DataFrame(
-            {TIME_COLUMN: pd.Series(times), y_column: pd.Series(ys, dtype=DEFAULT_FLOAT_TYPE)},
+            {TIME_COLUMN: pd.Series(times), y_column: pd.Series(ys)},
             columns=[TIME_COLUMN, y_column],
         )
         _, regular_ts, _ = extract_features(regular_ts, y_column, detailed_seasonality=False, extra_features=False)

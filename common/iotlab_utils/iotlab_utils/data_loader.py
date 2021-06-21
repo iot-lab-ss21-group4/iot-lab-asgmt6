@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 import requests as requests
 
+from iotlab_utils.data_manager import DEFAULT_FLOAT_TYPE
+
 from .data_manager import TIME_COLUMN, UNIVARIATE_DATA_COLUMN
 
 scroll_open_timeout = "1m"
@@ -26,7 +28,13 @@ def create_data_frame_from_hits(
 ) -> pd.DataFrame:
     if is_reversed:
         hits_list = reversed(hits_list)
-    counts_df = pd.DataFrame(index=list(data_range), columns=[TIME_COLUMN, UNIVARIATE_DATA_COLUMN])
+    counts_df = pd.DataFrame(
+        {
+            TIME_COLUMN: pd.Series(dtype=np.int64, index=data_range),
+            UNIVARIATE_DATA_COLUMN: pd.Series(dtype=DEFAULT_FLOAT_TYPE, index=data_range),
+        },
+        columns=[TIME_COLUMN, UNIVARIATE_DATA_COLUMN],
+    )
     for i, hit in zip(data_range, hits_list):
         timestamp_ms, value = hit["_source"]["timestamp"], hit["_source"]["value"]
         # Filter / Change ts values here

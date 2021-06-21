@@ -1,8 +1,9 @@
 from typing import Any, Dict, Optional, Tuple
 
+import numpy as np
 import pandas as pd
 from iotlab_utils.data_loader import load_data, load_latest_data
-from iotlab_utils.data_manager import TIME_COLUMN, UNIVARIATE_DATA_COLUMN
+from iotlab_utils.data_manager import DEFAULT_FLOAT_TYPE, TIME_COLUMN, UNIVARIATE_DATA_COLUMN
 
 
 class DataFetcher:
@@ -13,7 +14,13 @@ class DataFetcher:
 
     def fetch_latest(self, look_back_length: int) -> Tuple[pd.DataFrame, str]:
         if look_back_length <= 0:
-            return pd.DataFrame(columns=[TIME_COLUMN, UNIVARIATE_DATA_COLUMN]), UNIVARIATE_DATA_COLUMN
+            return (
+                pd.DataFrame(
+                    {TIME_COLUMN: pd.Series(dtype=np.int64), UNIVARIATE_DATA_COLUMN: pd.Series(dtype=DEFAULT_FLOAT_TYPE)},
+                    columns=[TIME_COLUMN, UNIVARIATE_DATA_COLUMN],
+                ),
+                UNIVARIATE_DATA_COLUMN,
+            )
 
         return (
             load_latest_data(
