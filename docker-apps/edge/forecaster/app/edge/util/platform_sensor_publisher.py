@@ -41,17 +41,17 @@ class PlatformSensorPublisher:
             )
             + "}"
         )
-        print("Publishing '{}' on topic '{}'".format(message, self.topic))
+        print("Publishing '{}' on topic '{}' to platform sensor".format(message, self.topic))
         self.client.publish(self.topic, message, qos=2)
 
 
 def on_connect(client: mqtt.Client, userdata: None, flags: Dict[str, int], rc: int):
-    print("Connected. Result code " + str(rc))
+    print("Connected to platform sensor. Result code " + str(rc))
 
 
 def on_disconnect(client: mqtt.Client, userdata: None, rc: int):
-    print("Disconnected. Result code " + str(rc))
+    print("Disconnected from platform sensor. Result code " + str(rc))
 
 
 def on_publish(client: mqtt.Client, userdata: None, rc: int):
-    print("MQTT event published. Result code: {}.".format(rc))
+    print("MQTT event published to platform sensor. Result code: {}.".format(rc))
