@@ -5,10 +5,10 @@
     "minio_access_key": "...",
     "minio_secret_key": "..."
   },
-  "message_broker_settings": {
-    "message_broker_topic_name": "EDGE_FORECAST",
-    "message_broker_host": "localhost",
-    "message_broker_port": 29092
+  "edge_broker_mqtt_settings": {
+    "edge_broker_topic_name": "EDGE_FORECAST",
+    "edge_broker_host": "localhost",
+    "edge_broker_port": 1883
   },
   "iot_platform_mqtt_settings": {
     "iot_platform_gateway_username": "JWT",

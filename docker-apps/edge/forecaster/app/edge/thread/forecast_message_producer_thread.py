@@ -1,20 +1,20 @@
 import queue
 import threading
 
-from edge.util.kafka_count_publisher import KafkaCountPublisher
+from edge.util.edge_broker_publisher import EdgeBrokerPublisher
 
 
-class KafkaCountPublisherThread(threading.Thread):
+class EdgeBrokerPublisherThread(threading.Thread):
     def __init__(
         self,
         event_in_q: queue.Queue,
-        kafka_count_publisher: KafkaCountPublisher,
+        edge_broker_publisher: EdgeBrokerPublisher,
     ):
         super().__init__()
         self.event_in_q = event_in_q
-        self.kafka_count_publisher = kafka_count_publisher
+        self.edge_broker_publisher = edge_broker_publisher
 
     def run(self):
         while True:
             _, y = self.event_in_q.get()
-            self.kafka_count_publisher.publish(y)
+            self.edge_broker_publisher.publish(y)

@@ -9,7 +9,7 @@ from common.iotlab_utils.iotlab_utils.data_manager import TIME_COLUMN
 from edge.util.accuracy import Accuracy, AccuracyCalculator
 from edge.util.data_fetcher import DataFetcher
 from edge.util.forecast_combiner import ForecastCombiner
-from edge.util.kafka_count_publisher import KafkaCountPublisher
+from edge.util.edge_broker_publisher import EdgeBrokerPublisher
 from edge.util.platform_sensor_publisher import PlatformSensorPublisher
 from iotlab_utils.data_manager import time_series_interpolate
 
@@ -25,7 +25,7 @@ class ForecastEvaluatorThread(threading.Thread):
         self,
         event_in_q: Queue,
         platform_sensor_publisher: PlatformSensorPublisher,
-        kafka_count_publisher: KafkaCountPublisher,
+        edge_broker_publisher: EdgeBrokerPublisher,
         data_fetcher: DataFetcher,
         number_of_models: int,
         accuracy_calculator: AccuracyCalculator,
@@ -35,7 +35,7 @@ class ForecastEvaluatorThread(threading.Thread):
         super().__init__()
         self.forecast_evaluator_in_q = event_in_q
         self.platform_sensor_publisher = platform_sensor_publisher
-        self.kafka_count_publisher = kafka_count_publisher
+        self.edge_broker_publisher = edge_broker_publisher
         self.data_fetcher = data_fetcher
         self.number_of_accuracy_values = number_of_models * len(ForecastEvaluatorThread.ACCURACY_METRIC_NAMES)
         self.accuracy_calculator = accuracy_calculator
@@ -130,5 +130,5 @@ class ForecastEvaluatorThread(threading.Thread):
                 # Note that 't' for all models at this evaluation round must be the same!
                 best_y = self.forecast_combiner.combine(evaluation_rounds[round_index])
                 self.platform_sensor_publisher.publish(ForecastEvaluatorThread.BEST_ONLINE_SENSOR_NAME, t, best_y)
-                self.kafka_count_publisher.publish(best_y)
+                self.edge_broker_publisher.publish(best_y)
                 del evaluation_rounds[round_index]

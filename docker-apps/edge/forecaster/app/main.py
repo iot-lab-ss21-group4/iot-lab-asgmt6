@@ -12,7 +12,7 @@ from edge.thread.timer_thread import TimerThread
 from edge.util.accuracy import AccuracyCalculator
 from edge.util.data_fetcher import DataFetcher
 from edge.util.forecast_combiner import ForecastCombiner
-from edge.util.kafka_count_publisher import KafkaCountPublisher
+from edge.util.edge_broker_publisher import EdgeBrokerPublisher
 from edge.util.platform_sensor_publisher import PlatformSensorPublisher
 
 
@@ -23,16 +23,16 @@ def setup(args: argparse.Namespace):
     # create singleton mqtt publisher
     # under the assumption that one device (topic: username_deviceId) is sufficient
     platform_sensor_publisher = PlatformSensorPublisher(settings["iot_platform_mqtt_settings"])
+    edge_broker_publisher = EdgeBrokerPublisher(settings["edge_broker_mqtt_settings"])
 
     all_threads: List[threading.Thread] = []
 
     forecast_evaluator_in_q = queue.Queue()
-    kafka_count_publisher = KafkaCountPublisher(settings["message_broker_settings"])
     data_fetcher = DataFetcher(settings["iot_platform_consumer_settings"])
     forecast_evaluator_thread = ForecastEvaluatorThread(
         event_in_q=forecast_evaluator_in_q,
         platform_sensor_publisher=platform_sensor_publisher,
-        kafka_count_publisher=kafka_count_publisher,
+        edge_broker_publisher=edge_broker_publisher,
         data_fetcher=data_fetcher,
         number_of_models=len(settings["forecast_models"]),
         accuracy_calculator=AccuracyCalculator(),

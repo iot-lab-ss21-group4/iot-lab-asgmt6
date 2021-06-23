@@ -1,0 +1,24 @@
+version: '3'
+services:
+
+  minio:
+    image: minio/minio:latest
+    hostname: minio
+    container_name: minio
+    command: server /export
+    environment:
+      MINIO_ROOT_USER: "test_user"
+      MINIO_ROOT_PASSWORD: "password"
+    volumes:
+      - ./mnt/data:/data
+    ports:
+      - '9000:9000'
+
+  mosquitto:
+    image: toke/mosquitto:latest
+    hostname: mosquitto
+    container_name: mosquitto
+    expose:
+      - "1883"
+    ports:
+      - "1883:1883"
