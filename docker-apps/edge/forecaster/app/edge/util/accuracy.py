@@ -8,15 +8,14 @@ class Accuracy(NamedTuple):
     mape: float
     smape: float
     mase: float
+    ias: float
 
 
 class AccuracyCalculator:
     def __init__(self):
-        # TODO: check if ias necessary in next meeting
-        self.ias_quantile = 2.58
-        self.ias_sig_alpha = 0.01
-        # self.ias_quantile = float(accuracy_config["ias_quantile"])
-        # self.ias_sig_alpha = float(accuracy_config["ias_sig_alpha"])
+        # TODO: make configurable
+        self.ias_quantile = 1.96 # 95% prediction interval
+        self.ias_sig_alpha = 0.05
 
     def compute_accuracy_metrics(self, real_counts: List[int], forecasts: List[int]):
         return Accuracy(
@@ -25,6 +24,7 @@ class AccuracyCalculator:
             mape=AccuracyCalculator.root_mean_squared_error(real_counts, forecasts),
             smape=AccuracyCalculator.symmetric_mean_absolute_percentage_error(real_counts, forecasts),
             mase=AccuracyCalculator.mean_absolute_scaled_error(real_counts, forecasts),
+            ias=AccuracyCalculator.interval_accuracy_score(real_counts, forecasts, self.ias_quantile, self.ias_sig_alpha)
         )
 
     @staticmethod
@@ -67,4 +67,4 @@ class AccuracyCalculator:
             ub_penalty = ub_penalty * (2 / alpha) * (x - ub)
             return (ub - lb) + lb_penalty + ub_penalty
 
-        return sum([compute_single_ias(y_hat, lb, ub, sig_alpha) for y_hat in ys_pred])
+        return sum([compute_single_ias(y_hat, lb, ub, sig_alpha) for y_hat in ys_pred]) / len(ys_pred)
