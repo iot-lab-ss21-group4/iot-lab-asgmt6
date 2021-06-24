@@ -29,6 +29,8 @@ class StudentCountPredictor(nn.Module):
     x_columns = ["lag1_count", "dT", "minute_of_day", "day_of_week", "month_of_year"]
     y_column = UNIVARIATE_DATA_COLUMN
     useless_rows = 1
+    prediction_count_lower_bound = 0
+    prediction_count_higher_bound = 45
 
     def __init__(self, config: Dict[str, Any], look_back_buffer: Optional[pd.DataFrame] = None):
         super().__init__()
@@ -116,11 +118,10 @@ class StudentCountPredictor(nn.Module):
 
     def predict_single(self, sequence: th.Tensor) -> float:
         prediction = self(sequence).item()
-        if prediction < 0:
-            prediction = 0
-        # TODO: enable to make predictions up to 45 (official upper limit on the room count).
-        if 1 < prediction:
-            prediction = 1
+        if prediction < self.prediction_count_lower_bound:
+            prediction = self.prediction_count_lower_bound
+        if self.prediction_count_higher_bound < prediction:
+            prediction = self.prediction_count_higher_bound
         return prediction
 
     def forecast(self, ts: pd.DataFrame, update_lag1_count: bool = True) -> pd.DataFrame:
@@ -170,8 +171,7 @@ def train(ts: pd.DataFrame, config: Dict[str, Any]):
     model = StudentCountPredictor(config)
     model.update_look_back_buffer(ts.loc[ts.index[-model.look_back_length :], [TIME_COLUMN, model.y_column]])
     dataset = model.prepare_data(ts)
-    # https://discuss.pytorch.org/t/what-are-the-dis-advantages-of-persistent-workers/102110/4
-    dataloader = DataLoader(dataset, batch_size=8, persistent_workers=True)
+    dataloader = DataLoader(dataset, batch_size=8, persistent_workers=config["persistent_workers"], num_workers=config["n_workers"])
     for epoch in range(config["n_epochs"]):
         for train_batch in dataloader:
             loss = model.general_step(train_batch)
