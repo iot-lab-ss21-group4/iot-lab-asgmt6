@@ -11,4 +11,3 @@ black
 paho-mqtt
 minio
 setuptools
-kafka-python
