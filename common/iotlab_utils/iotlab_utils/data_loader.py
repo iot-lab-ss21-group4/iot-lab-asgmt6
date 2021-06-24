@@ -1,4 +1,5 @@
 import json
+from time import sleep
 from typing import Any, Dict, Iterable, List, Optional
 
 import numpy as np
@@ -38,7 +39,7 @@ def create_data_frame_from_hits(
     for i, hit in zip(data_range, hits_list):
         timestamp_ms, value = hit["_source"]["timestamp"], hit["_source"]["value"]
         # Filter / Change ts values here
-        counts_df.loc[i] = [int(np.round(timestamp_ms / 1000)), value]
+        counts_df.loc[i] = [int(np.floor(timestamp_ms / 1000)), value]
 
     return counts_df
 
@@ -83,18 +84,25 @@ def load_data(
         query = recursive_dict_update(query, upper_bound_query)
     if "range" not in query:
         query = {"match_all": {}}
-    response = requests.get(
-        url=consumer_scroll_api,
-        headers=consumer_scroll_api_header,
-        verify=False,
-        data=json.dumps(
-            {
-                "size": entries_per_request,
-                "query": query,
-                "sort": {"timestamp": query_time_order},
-            }
-        ),
-    )
+    response = None
+    for i in range(5):
+        response = requests.get(
+            url=consumer_scroll_api,
+            headers=consumer_scroll_api_header,
+            verify=False,
+            data=json.dumps(
+                {
+                    "size": entries_per_request,
+                    "query": query,
+                    "sort": {"timestamp": query_time_order},
+                }
+            ),
+        )
+        if response.status_code == 200:
+            break
+        sleep(5)
+    if response.status_code != 200:
+        raise Exception("Cannot retrieve data from {}. Error Code is: {}".format(consumer_host, response.status_code))
     payload_body: Dict[str, Any] = response.json()["body"]
     scroll_id: str = payload_body["_scroll_id"]
     hits: Dict[str, Any] = payload_body["hits"]
