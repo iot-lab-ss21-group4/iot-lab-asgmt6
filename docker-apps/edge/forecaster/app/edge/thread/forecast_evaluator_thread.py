@@ -1,3 +1,4 @@
+import logging
 import threading
 from collections import defaultdict, deque
 from queue import Queue
@@ -20,7 +21,6 @@ class ForecastEvaluatorThread(threading.Thread):
     BEST_ONLINE_SENSOR_NAME = "bestOnline"
     ACCURACY_METRIC_NAMES = ["MAE", "RMSE", "MAPE", "sMAPE", "MASE", "IAS"]
     ACCURACY_SENSOR_PATTERN = "accuracy{}-{}"
-    MODEL_COUNT = 3
 
     def __init__(
         self,
@@ -38,7 +38,7 @@ class ForecastEvaluatorThread(threading.Thread):
         self.platform_sensor_publisher = platform_sensor_publisher
         self.edge_broker_publisher = edge_broker_publisher
         self.data_fetcher = data_fetcher
-        self.number_of_accuracy_values = number_of_models * len(ForecastEvaluatorThread.ACCURACY_METRIC_NAMES)
+        self.number_of_models = number_of_models
         self.accuracy_calculator = accuracy_calculator
         self.forecast_combiner = forecast_combiner
         self.max_overlap_cnt = max_overlap_cnt
@@ -116,9 +116,19 @@ class ForecastEvaluatorThread(threading.Thread):
 
             # Get the target and forecast values ready for accuracy metric calculations
             self.track_model_forecasts(model_type, t, y)
+            logging.info(
+                "{}: Current forecasts [{}]".format(
+                    model_type, " ".join(["( " + str(t) + " " + str(y) + " )" for (t, y) in self.forecast_buffer[model_type]])
+                )
+            )
             # Get the target and forecast value pairs
             real_counts, forecasts = self.get_target_and_forecast_pairs(model_type)
             assert len(real_counts) == len(forecasts), "Target and forecast value pairs must be of equal size!"
+            logging.info(
+                "{}: Pairs of real counts and forecasts [{}]".format(
+                    model_type, " ".join(["( " + str(c) + " " + str(f) + " )" for (c, f) in zip(real_counts, forecasts)])
+                )
+            )
             if len(real_counts) > 0:
                 # Perform accuracy metric calculations, since we have some target and forecast values
                 accuracy = self.accuracy_calculator.compute_accuracy_metrics(real_counts=real_counts, forecasts=forecasts)
@@ -128,7 +138,7 @@ class ForecastEvaluatorThread(threading.Thread):
                 evaluation_rounds[round_index][model_type] = (t, y, accuracy)
 
             # Check if all models submitted their forecasts for this evaluation round.
-            if len(evaluation_rounds[round_index]) >= ForecastEvaluatorThread.MODEL_COUNT:
+            if len(evaluation_rounds[round_index]) >= self.number_of_models:
                 # Note that 't' for all models at this evaluation round must be the same!
                 best_y = self.forecast_combiner.combine(evaluation_rounds[round_index])
                 self.platform_sensor_publisher.publish(ForecastEvaluatorThread.BEST_ONLINE_SENSOR_NAME, t, best_y)
