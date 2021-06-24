@@ -42,7 +42,7 @@ class ForecastEvaluatorThread(threading.Thread):
         self.forecast_combiner = forecast_combiner
         self.max_overlap_cnt = max_overlap_cnt
 
-        self.target_buffer: Dict[str, pd.DataFrame] = []
+        self.target_buffer: Dict[str, pd.DataFrame] = {}
         self.forecast_buffer: Dict[str, Deque[Tuple[int, int]]] = defaultdict(deque)
         self.overlap_cnt: int = 0
         self.y_column: Optional[str] = None
@@ -100,6 +100,7 @@ class ForecastEvaluatorThread(threading.Thread):
         return target_values.tolist(), list(forecast_ys)
 
     def run(self):
+        # TODO: consider evaluation_round as class -> difficult to understand what is what in the Dict
         evaluation_rounds: List[Dict[str, Tuple[int, int, Accuracy]]] = []
         while True:
             model_type: str
