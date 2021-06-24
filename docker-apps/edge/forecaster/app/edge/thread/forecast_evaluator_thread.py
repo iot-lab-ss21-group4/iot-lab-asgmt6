@@ -19,6 +19,7 @@ class ForecastEvaluatorThread(threading.Thread):
     ACCURACY_SENSOR_PREFIX = "accuracy"
     BEST_ONLINE_SENSOR_NAME = "bestOnline"
     ACCURACY_METRIC_NAMES = ["MAE", "RMSE", "MAPE", "sMAPE", "MASE", "IAS"]
+    ACCURACY_SENSOR_PATTERN = "accuracy{}-{}"
     MODEL_COUNT = 3
 
     def __init__(
@@ -121,9 +122,11 @@ class ForecastEvaluatorThread(threading.Thread):
             if len(real_counts) > 0:
                 # Perform accuracy metric calculations, since we have some target and forecast values
                 accuracy = self.accuracy_calculator.compute_accuracy_metrics(real_counts=real_counts, forecasts=forecasts)
-                self.platform_sensor_publisher.publish(
-                    ForecastEvaluatorThread.ACCURACY_SENSOR_PREFIX + model_type.upper(), t, accuracy._asdict()
-                )
+                for accuracy_metric_name in self.ACCURACY_METRIC_NAMES:
+                    accuracy_sensor = self.ACCURACY_SENSOR_PATTERN.format(model_type.upper(), accuracy_metric_name)
+                    self.platform_sensor_publisher.publish(
+                        accuracy_sensor, t, getattr(accuracy, accuracy_metric_name.lower())
+                    )
                 evaluation_rounds[round_index][model_type] = (t, y, accuracy)
 
             # Check if all models submitted their forecasts for this evaluation round.
