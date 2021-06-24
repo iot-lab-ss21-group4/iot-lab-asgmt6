@@ -44,17 +44,25 @@ class AccuracyCalculator:
 
     @staticmethod
     def symmetric_mean_absolute_percentage_error(ys_real: List[int], ys_pred: List[int]) -> float:
-        errors = [200 * abs(y - y_hat) / (y + y_hat) for y, y_hat in zip(ys_real, ys_pred)]
+        errors = [200 * abs(y - y_hat) / (y + y_hat) if (y + y_hat) is not 0 else 0 for y, y_hat in zip(ys_real, ys_pred)]
         return sum(errors) / len(errors)
 
     @staticmethod
     def mean_absolute_scaled_error(ys_real: List[int], ys_pred: List[int]) -> float:
+        if len(ys_real) <= 1 or len(ys_pred) <= 1:
+            # we cannot apply formula on singleton lists
+            return 0
         base = AccuracyCalculator.mean_absolute_error(ys_real[1:], ys_real[:-1])
+        if base == 0:
+            return 0
         forecasts_error_mean = AccuracyCalculator.mean_absolute_error(ys_real, ys_pred)
         return forecasts_error_mean / base
 
     @staticmethod
     def interval_accuracy_score(ys_real: List[int], ys_pred: List[int], quantile: float, sig_alpha: float) -> float:
+        if len(ys_real) <= 1:
+            # we cannot apply formula on singleton list because of standard deviation
+            return 0
         mean = sum(ys_real) / len(ys_real)
         st_dev = sqrt(sum([(y - mean) ** 2 for y in ys_real]) / (len(ys_real) - 1))
         lb = mean - quantile * st_dev
