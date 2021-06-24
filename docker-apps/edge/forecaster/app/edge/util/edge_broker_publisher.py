@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Dict
 
 import paho.mqtt.client as mqtt
@@ -26,18 +27,18 @@ class EdgeBrokerPublisher:
         self.client.loop_start()
 
     def publish(self, forecast: int):
-        print("Send count {} to topic {} to edge broker.".format(forecast, self.topic))
+        logging.info("Send count {} to topic {} to edge broker.".format(forecast, self.topic))
         message = FORECAST_MSG.format(forecast)
         self.client.publish(self.topic, message, qos=2)
 
 
 def on_connect(client: mqtt.Client, userdata: None, flags: Dict[str, int], rc: int):
-    print("Connected to edge broker. Result code " + str(rc))
+    logging.info("Connected to edge broker. Result code " + str(rc))
 
 
 def on_disconnect(client: mqtt.Client, userdata: None, rc: int):
-    print("Disconnected from edge broker. Result code " + str(rc))
+    logging.info("Disconnected from edge broker. Result code " + str(rc))
 
 
 def on_publish(client: mqtt.Client, userdata: None, rc: int):
-    print("MQTT event published to edge broker. Result code: {}.".format(rc))
+    logging.info("MQTT event published to edge broker. Result code: {}.".format(rc))

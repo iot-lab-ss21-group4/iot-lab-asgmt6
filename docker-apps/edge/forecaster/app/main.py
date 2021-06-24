@@ -1,5 +1,6 @@
 import argparse
 import json
+import logging
 import os
 import queue
 import threading
@@ -14,6 +15,16 @@ from edge.util.data_fetcher import DataFetcher
 from edge.util.forecast_combiner import ForecastCombiner
 from edge.util.edge_broker_publisher import EdgeBrokerPublisher
 from edge.util.platform_sensor_publisher import PlatformSensorPublisher
+
+# suppress ssl warning for IoT platform
+import urllib3
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+# Setup Logger
+logging.basicConfig(
+    format="%(asctime)s %(levelname)s %(module)s: %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S"
+)
 
 
 def setup(args: argparse.Namespace):
@@ -43,6 +54,7 @@ def setup(args: argparse.Namespace):
     forecaster_in_qs = []
     minio_client = setup_minio_client(settings["minio_settings"])
     for model_configuration in settings["forecast_models"]:
+        logging.info("Setup model of type {}".format(model_configuration["type"]))
         forecaster_in_q = queue.Queue()
         forecaster_in_qs.append(forecaster_in_q)
         forecaster_thread = setup_model(

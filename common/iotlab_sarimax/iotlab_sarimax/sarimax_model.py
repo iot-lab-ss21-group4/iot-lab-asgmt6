@@ -43,7 +43,7 @@ class SARIMAXWrapper:
             self.look_back_buffer = look_back_buffer
 
     def forecast(self, ts: pd.DataFrame) -> pd.DataFrame:
-        #TODO: hotfix
+        # TODO: hotfix
         ts["count"] = 0
         y_column, _, ts, _ = prepare_data_with_features(
             ts, seasonality_features=False, detailed_seasonality=False, extra_features=False, lag_order=0
@@ -123,5 +123,7 @@ def train(data: pd.DataFrame) -> SARIMAXWrapper:
     model_fit = forecast_model.fit(disp=False)
 
     wrapped_model = SARIMAXWrapper(model_fit, avg_dt, exog_columns)
-    wrapped_model.update_look_back_buffer(train_ts.loc[train_ts.index[-wrapped_model.look_back_length :], [TIME_COLUMN, y_column]])
+    wrapped_model.update_look_back_buffer(
+        train_ts.loc[train_ts.index[-wrapped_model.look_back_length :], [TIME_COLUMN, y_column]]
+    )
     return wrapped_model

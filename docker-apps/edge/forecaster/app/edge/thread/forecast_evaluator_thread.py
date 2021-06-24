@@ -124,9 +124,7 @@ class ForecastEvaluatorThread(threading.Thread):
                 accuracy = self.accuracy_calculator.compute_accuracy_metrics(real_counts=real_counts, forecasts=forecasts)
                 for accuracy_metric_name in self.ACCURACY_METRIC_NAMES:
                     accuracy_sensor = self.ACCURACY_SENSOR_PATTERN.format(model_type.upper(), accuracy_metric_name)
-                    self.platform_sensor_publisher.publish(
-                        accuracy_sensor, t, getattr(accuracy, accuracy_metric_name.lower())
-                    )
+                    self.platform_sensor_publisher.publish(accuracy_sensor, t, getattr(accuracy, accuracy_metric_name.lower()))
                 evaluation_rounds[round_index][model_type] = (t, y, accuracy)
 
             # Check if all models submitted their forecasts for this evaluation round.

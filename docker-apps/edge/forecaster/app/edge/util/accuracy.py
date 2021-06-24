@@ -14,7 +14,7 @@ class Accuracy(NamedTuple):
 class AccuracyCalculator:
     def __init__(self):
         # TODO: make configurable
-        self.ias_quantile = 1.96 # 95% prediction interval
+        self.ias_quantile = 1.96  # 95% prediction interval
         self.ias_sig_alpha = 0.05
 
     def compute_accuracy_metrics(self, real_counts: List[int], forecasts: List[int]):
@@ -24,7 +24,7 @@ class AccuracyCalculator:
             mape=AccuracyCalculator.root_mean_squared_error(real_counts, forecasts),
             smape=AccuracyCalculator.symmetric_mean_absolute_percentage_error(real_counts, forecasts),
             mase=AccuracyCalculator.mean_absolute_scaled_error(real_counts, forecasts),
-            ias=AccuracyCalculator.interval_accuracy_score(real_counts, forecasts, self.ias_quantile, self.ias_sig_alpha)
+            ias=AccuracyCalculator.interval_accuracy_score(real_counts, forecasts, self.ias_quantile, self.ias_sig_alpha),
         )
 
     @staticmethod

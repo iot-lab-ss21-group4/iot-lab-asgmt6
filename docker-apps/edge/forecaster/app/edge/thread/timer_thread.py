@@ -1,3 +1,4 @@
+import logging
 import queue
 import threading
 import time
@@ -21,6 +22,7 @@ class TimerThread(threading.Thread):
     def run(self):
         while True:
             pred_time = int(time.time()) + self.forecast_dt
+            logging.info("Send pred time {} to forecasters.".format(str(pred_time)))
             for q in self.event_out_qs:
                 q.put(pred_time)
             time.sleep(max(0.0, self._next_forecast_time - time.time()))

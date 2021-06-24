@@ -171,7 +171,9 @@ def train(ts: pd.DataFrame, config: Dict[str, Any]):
     model = StudentCountPredictor(config)
     model.update_look_back_buffer(ts.loc[ts.index[-model.look_back_length :], [TIME_COLUMN, model.y_column]])
     dataset = model.prepare_data(ts)
-    dataloader = DataLoader(dataset, batch_size=8, persistent_workers=config["persistent_workers"], num_workers=config["n_workers"])
+    dataloader = DataLoader(
+        dataset, batch_size=8, persistent_workers=config["persistent_workers"], num_workers=config["n_workers"]
+    )
     for epoch in range(config["n_epochs"]):
         for train_batch in dataloader:
             loss = model.general_step(train_batch)

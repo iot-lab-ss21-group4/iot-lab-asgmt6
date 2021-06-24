@@ -1,3 +1,4 @@
+import logging
 import pickle
 import queue
 import threading
@@ -48,6 +49,7 @@ class ForecasterThread(threading.Thread):
                 response.release_conn()
 
             # Get the latest look back data for the forecast model.
+            logging.info("{}: Get latest look back data. In total: {}".format(self.model_type, model_fit.look_back_length))
             latest_data, y_column = self.data_fetcher.fetch_latest(model_fit.look_back_length)
             model_fit.update_look_back_buffer(latest_data)
 

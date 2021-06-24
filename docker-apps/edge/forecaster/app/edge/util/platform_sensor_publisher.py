@@ -1,4 +1,5 @@
 import json
+import logging
 from typing import Any, Dict
 
 import paho.mqtt.client as mqtt
@@ -41,17 +42,17 @@ class PlatformSensorPublisher:
             )
             + "}"
         )
-        print("Publishing '{}' on topic '{}' to platform sensor".format(message, self.topic))
+        logging.info("Publishing '{}' on topic '{}' to platform sensor".format(message, self.topic))
         self.client.publish(self.topic, message, qos=2)
 
 
 def on_connect(client: mqtt.Client, userdata: None, flags: Dict[str, int], rc: int):
-    print("Connected to platform sensor. Result code " + str(rc))
+    logging.info("Connected to platform sensor. Result code " + str(rc))
 
 
 def on_disconnect(client: mqtt.Client, userdata: None, rc: int):
-    print("Disconnected from platform sensor. Result code " + str(rc))
+    logging.info("Disconnected from platform sensor. Result code " + str(rc))
 
 
 def on_publish(client: mqtt.Client, userdata: None, rc: int):
-    print("MQTT event published to platform sensor. Result code: {}.".format(rc))
+    logging.info("MQTT event published to platform sensor. Result code: {}.".format(rc))
