@@ -12,13 +12,14 @@ from iotlab_utils.data_manager import (
     time_series_interpolate,
 )
 from sklearn.metrics import mean_squared_error
-from statsmodels.tsa.statespace.sarimax import SARIMAX, SARIMAXResultsWrapper
+from statsmodels.tsa.statespace.mlemodel import MLEResults
+from statsmodels.tsa.statespace.sarimax import SARIMAX
 
 
 class SARIMAXWrapper:
     def __init__(
         self,
-        model: SARIMAXResultsWrapper,
+        model: MLEResults,
         avg_dt: pd.DateOffset,
         exog_columns: List[str],
         look_back_buffer: Optional[pd.DataFrame] = None,
@@ -120,5 +121,5 @@ def train(data: pd.DataFrame) -> SARIMAXWrapper:
     model_fit = forecast_model.fit(disp=False)
 
     wrapped_model = SARIMAXWrapper(model_fit, avg_dt, exog_columns)
-    wrapped_model.look_back_buffer(train_ts.loc[train_ts.index[-wrapped_model.look_back_length :], [TIME_COLUMN, y_column]])
+    wrapped_model.update_look_back_buffer(train_ts.loc[train_ts.index[-wrapped_model.look_back_length :], [TIME_COLUMN, y_column]])
     return wrapped_model
