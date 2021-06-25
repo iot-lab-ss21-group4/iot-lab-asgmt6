@@ -7,7 +7,7 @@ import pandas as pd
 import urllib3
 from edge.util.data_fetcher import DataFetcher
 from edge.util.platform_sensor_publisher import PlatformSensorPublisher
-from iotlab_utils.data_manager import TIME_COLUMN
+from iotlab_utils.data_manager import DEFAULT_FLOAT_TYPE, TIME_COLUMN
 from minio import Minio
 
 
@@ -54,7 +54,7 @@ class ForecasterThread(threading.Thread):
             model_fit.update_look_back_buffer(latest_data)
 
             # Calculate the next prediction time.
-            forecast_data = model_fit.forecast(pd.DataFrame({TIME_COLUMN: [pred_time]}))
+            forecast_data = model_fit.forecast(pd.DataFrame({TIME_COLUMN: [pred_time], y_column: [DEFAULT_FLOAT_TYPE()]}))
             forecast_value = int(forecast_data.loc[forecast_data.index[-1], y_column])
             forecast_value = min(45, max(0, forecast_value))
 

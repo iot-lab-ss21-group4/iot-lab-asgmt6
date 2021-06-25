@@ -43,8 +43,6 @@ class SARIMAXWrapper:
             self.look_back_buffer = look_back_buffer
 
     def forecast(self, ts: pd.DataFrame) -> pd.DataFrame:
-        # TODO: hotfix
-        ts["count"] = 0
         y_column, _, ts, _ = prepare_data_with_features(
             ts, seasonality_features=False, detailed_seasonality=False, extra_features=False, lag_order=0
         )
