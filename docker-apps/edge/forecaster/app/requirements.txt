@@ -3,3 +3,8 @@ minio
 optuna
 paho-mqtt
 torch
+numpy
+scikit-learn
+scipy
+pandas
+requests
