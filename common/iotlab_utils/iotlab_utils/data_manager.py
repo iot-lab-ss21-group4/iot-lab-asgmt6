@@ -117,9 +117,13 @@ def prepare_data_with_features(
 
 
 def time_series_interpolate(t: np.ndarray, y: np.ndarray, t2: np.ndarray) -> np.ndarray:
-    time_scaler = MinMaxScaler().fit(t.reshape(-1, 1))
+    # TODO: hotfix: add extrapolate flag
+    # add also concatenation of time sequences so that every value will be in range [0,1]
+    t_concat = np.concatenate((t, t2))
+    np.sort(t_concat)
+    time_scaler = MinMaxScaler().fit(t_concat.reshape(-1, 1))
     scaled_t: np.ndarray = time_scaler.transform(t.reshape(-1, 1))
-    univariate_f = interp1d(scaled_t.flatten(), y)
+    univariate_f = interp1d(scaled_t.flatten(), y, fill_value='extrapolate')
     scaled_t2: np.ndarray = time_scaler.transform(t2.reshape(-1, 1))
     return univariate_f(scaled_t2.flatten()).astype(DEFAULT_FLOAT_TYPE)
 
