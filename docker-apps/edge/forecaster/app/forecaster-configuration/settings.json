@@ -1,9 +1,9 @@
 {
   "minio_settings": {
-    "minio_host": "10.195.1.242",
+    "minio_host": "localhost",
     "minio_port": 9000,
-    "minio_access_key": "...",
-    "minio_secret_key": "..."
+    "minio_access_key": "group4",
+    "minio_secret_key": ""
   },
   "edge_broker_mqtt_settings": {
     "edge_broker_topic_name": "EDGE_FORECAST",
@@ -12,16 +12,16 @@
   },
   "iot_platform_mqtt_settings": {
     "iot_platform_gateway_username": "JWT",
+    "iot_platform_gateway_password": "",
     "iot_platform_gateway_ip": "131.159.35.132",
     "iot_platform_gateway_port": 1883,
     "iot_platform_group_name": "group4_2021_ss",
     "iot_platform_user_id": 48,
-    "iot_platform_device_id": 135,
-    "iot_platform_gateway_password": ""
+    "iot_platform_device_id": 137
   },
   "iot_platform_consumer_settings": {
     "iot_platform_consumer_host": "131.159.35.132",
-    "iot_platform_consumer_id": 1253,
+    "iot_platform_consumer_id": 1276,
     "iot_platform_consumer_key": ""
   },
   "forecast_models": [
@@ -29,6 +29,16 @@
       "type": "lstm",
       "model_bucket": "production-model",
       "model_blob_name": "lstm_model.pk"
+    },
+    {
+      "type": "lr",
+      "model_bucket": "production-model",
+      "model_blob_name": "lr_model.pk"
+    },
+    {
+      "type": "sarimax",
+      "model_bucket": "production-model",
+      "model_blob_name": "sarimax_model.pk"
     }
   ],
   "forecast_combine_strategy": "select_most_accurate"
