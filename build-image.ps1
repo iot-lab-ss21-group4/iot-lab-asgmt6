@@ -14,7 +14,7 @@ if (!$EnvFilePath -eq "") {
     $build_args = Get-Content -Raw -Path $EnvFilePath | ConvertFrom-StringData
     # Convert all keys to lowercase letters before adding as a build argument
     foreach ($key in $build_args.PSBase.Keys) {
-        $build_arg_str += " --build-arg $($key.ToString().ToLowerInvariant())=$($build_args[$key])"
+        $build_arg_str += " --build-arg $($key.ToString())=$($build_args[$key])"
     }
 }
 

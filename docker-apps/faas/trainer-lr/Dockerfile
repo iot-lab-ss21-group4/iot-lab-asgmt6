@@ -1,16 +1,16 @@
 FROM ibmfunctions/action-python-v3.7:master
 
-ARG docker_app_path="docker-apps/faas/trainer-lr"
-ARG container_app_path="/app"
+ARG DOCKER_APP_PATH="docker-apps/faas/trainer-lr"
+ARG CONTAINER_APP_PATH="/app"
 
-WORKDIR ${container_app_path}
-COPY ${docker_app_path}/app .
+WORKDIR ${CONTAINER_APP_PATH}
+COPY ${DOCKER_APP_PATH}/app .
 # Install app specific requirements
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy and install common requirements
-WORKDIR ${container_app_path}/common
+WORKDIR ${CONTAINER_APP_PATH}/common
 COPY common/ .
 RUN bash install-all.sh
 
-WORKDIR ${container_app_path}
+WORKDIR ${CONTAINER_APP_PATH}
