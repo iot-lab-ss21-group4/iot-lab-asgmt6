@@ -1,7 +1,7 @@
 from typing import Dict, Tuple
 
-from edge.util.accuracy import Accuracy
-from edge.util.forecast_combine_strategy import (
+from util.accuracy import Accuracy
+from util.forecast_combine_strategy import (
     ForecastCombineStrategy,
     MajorityRuleStrategy,
     SelectMostAccurateStrategy,

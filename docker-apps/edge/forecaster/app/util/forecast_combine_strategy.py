@@ -2,7 +2,7 @@ import operator
 from abc import ABC, abstractmethod
 from typing import Dict, Iterable, List, Tuple
 
-from edge.util.accuracy import Accuracy
+from util.accuracy import Accuracy
 
 
 class ForecastCombineStrategy(ABC):
