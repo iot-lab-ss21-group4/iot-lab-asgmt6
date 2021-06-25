@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import queue
+import sys
 import threading
 from typing import Any, Dict, List
 
@@ -22,8 +23,12 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Setup Logger
+log_formatter = logging.Formatter("%(asctime)s %(levelname)s %(module)s: %(message)s")
 logging.basicConfig(
-    format="%(asctime)s %(levelname)s %(module)s: %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S"
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(module)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    stream=sys.stdout,
 )
 
 
