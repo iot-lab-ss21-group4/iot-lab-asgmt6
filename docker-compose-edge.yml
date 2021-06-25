@@ -27,9 +27,9 @@ services:
     image: "${DOCKER_ID}/iotlab:edge-forecaster"
     hostname: forecaster
     container_name: forecaster
-    command: python main.py --settings-file forecaster-configuration/settings.json
+    command: python main.py --settings-file edge-configuration/settings.json
     volumes:
-      - "./forecaster-configuration:${CONTAINER_APP_PATH}/forecaster-configuration"
+      - "./edge-configuration:${CONTAINER_APP_PATH}/edge-configuration"
     depends_on:
       - minio
       - mosquitto

@@ -87,7 +87,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--settings-file",
         type=str,
-        default=os.path.join("forecaster-configuration", "settings.json"),
+        default=os.path.join("edge-configuration", "settings.json"),
         help="Path to the settings file.",
     )
     setup(parser.parse_args())
