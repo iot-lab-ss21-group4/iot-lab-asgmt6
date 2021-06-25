@@ -1,8 +1,8 @@
 import unittest
 
-from edge.util.accuracy import AccuracyCalculator
-from edge.util.forecast_combine_strategy import MajorityRuleStrategy, SelectMostAccurateStrategy
-from edge.util.forecast_combiner import ForecastCombiner
+from util.accuracy import AccuracyCalculator
+from util.forecast_combine_strategy import MajorityRuleStrategy, SelectMostAccurateStrategy
+from util.forecast_combiner import ForecastCombiner
 
 
 class TestForecastCombineStrategy(unittest.TestCase):

@@ -4,8 +4,7 @@ import unittest
 from typing import Dict
 
 import paho.mqtt.client as mqtt
-
-from edge.util.edge_broker_publisher import EdgeBrokerPublisher, FORECAST_MSG
+from util.edge_broker_publisher import FORECAST_MSG, EdgeBrokerPublisher
 
 test_forecast_message = ""
 
