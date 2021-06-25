@@ -5,8 +5,6 @@ import paho.mqtt.client as mqtt
 
 FORECAST_MSG = "Forecast:{}"
 
-delivered_records = 0
-
 
 class EdgeBrokerSettings:
     def __init__(self, config: Dict[str, Any]):

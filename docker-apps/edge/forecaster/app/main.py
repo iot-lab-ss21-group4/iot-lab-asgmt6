@@ -32,6 +32,7 @@ logging.basicConfig(
 
 
 def setup(args: argparse.Namespace):
+    logging.info("Reading the settings file '{}'".format(args.settings_file))
     with open(args.settings_file, "rt") as f:
         settings: Dict[str, Any] = json.load(f)
 

@@ -9,8 +9,8 @@ import pandas as pd
 from common.iotlab_utils.iotlab_utils.data_manager import TIME_COLUMN
 from edge.util.accuracy import Accuracy, AccuracyCalculator
 from edge.util.data_fetcher import DataFetcher
-from edge.util.forecast_combiner import ForecastCombiner
 from edge.util.edge_broker_publisher import EdgeBrokerPublisher
+from edge.util.forecast_combiner import ForecastCombiner
 from edge.util.platform_sensor_publisher import PlatformSensorPublisher
 from iotlab_utils.data_manager import time_series_interpolate
 
@@ -117,8 +117,14 @@ class ForecastEvaluatorThread(threading.Thread):
             # Get the target and forecast values ready for accuracy metric calculations
             self.track_model_forecasts(model_type, t, y)
             logging.info(
+                "{}: Targets [{}]".format(
+                    model_type,
+                    ", ".join(["({}, {})".format(t, y) for t, y in self.target_buffer[model_type].itertuples(index=False)]),
+                )
+            )
+            logging.info(
                 "{}: Current forecasts [{}]".format(
-                    model_type, " ".join(["( " + str(t) + " " + str(y) + " )" for (t, y) in self.forecast_buffer[model_type]])
+                    model_type, ", ".join(["({}, {})".format(t, y) for t, y in self.forecast_buffer[model_type]])
                 )
             )
             # Get the target and forecast value pairs
@@ -126,7 +132,7 @@ class ForecastEvaluatorThread(threading.Thread):
             assert len(real_counts) == len(forecasts), "Target and forecast value pairs must be of equal size!"
             logging.info(
                 "{}: Pairs of real counts and forecasts [{}]".format(
-                    model_type, " ".join(["( " + str(c) + " " + str(f) + " )" for (c, f) in zip(real_counts, forecasts)])
+                    model_type, ", ".join(["({}, {})".format(c, f) for c, f in zip(real_counts, forecasts)])
                 )
             )
             if len(real_counts) > 0:
