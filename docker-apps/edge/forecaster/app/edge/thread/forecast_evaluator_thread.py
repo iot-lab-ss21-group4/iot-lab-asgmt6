@@ -1,3 +1,4 @@
+import itertools
 import logging
 import threading
 from collections import defaultdict, deque
@@ -87,7 +88,7 @@ class ForecastEvaluatorThread(threading.Thread):
         # and forecast values such that targets[0] <= forecasts[0] AND forecasts[-1] <= targets[-1].
         if self.overlap_cnt <= 0:
             return [], []
-        forecast_ts, forecast_ys = tuple(zip(*[t_y for t_y in self.forecast_buffer[model_type]]))
+        forecast_ts, forecast_ys = tuple(zip(*itertools.islice(self.forecast_buffer[model_type], 0, self.overlap_cnt)))
         target_values = (
             time_series_interpolate(
                 self.target_buffer[model_type][TIME_COLUMN].to_numpy(),
