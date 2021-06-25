@@ -1,7 +1,7 @@
 import queue
 import threading
 
-from edge.util.edge_broker_publisher import EdgeBrokerPublisher
+from util.edge_broker_publisher import EdgeBrokerPublisher
 
 
 class EdgeBrokerPublisherThread(threading.Thread):

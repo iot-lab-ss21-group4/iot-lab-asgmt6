@@ -5,8 +5,8 @@ import threading
 
 import pandas as pd
 import urllib3
-from edge.util.data_fetcher import DataFetcher
-from edge.util.platform_sensor_publisher import PlatformSensorPublisher
+from util.data_fetcher import DataFetcher
+from util.platform_sensor_publisher import PlatformSensorPublisher
 from iotlab_utils.data_manager import DEFAULT_FLOAT_TYPE, TIME_COLUMN
 from minio import Minio
 

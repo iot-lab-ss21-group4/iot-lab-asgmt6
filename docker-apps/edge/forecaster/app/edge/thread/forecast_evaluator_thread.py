@@ -8,11 +8,11 @@ from typing import Deque, Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 from common.iotlab_utils.iotlab_utils.data_manager import TIME_COLUMN
-from edge.util.accuracy import Accuracy, AccuracyCalculator
-from edge.util.data_fetcher import DataFetcher
-from edge.util.edge_broker_publisher import EdgeBrokerPublisher
-from edge.util.forecast_combiner import ForecastCombiner
-from edge.util.platform_sensor_publisher import PlatformSensorPublisher
+from util.accuracy import Accuracy, AccuracyCalculator
+from util.data_fetcher import DataFetcher
+from util.edge_broker_publisher import EdgeBrokerPublisher
+from util.forecast_combiner import ForecastCombiner
+from util.platform_sensor_publisher import PlatformSensorPublisher
 from iotlab_utils.data_manager import time_series_interpolate
 
 

@@ -14,11 +14,11 @@ from edge.minio_client import setup_minio_client
 from edge.prepare_forecasting import setup_model
 from edge.thread.forecast_evaluator_thread import ForecastEvaluatorThread
 from edge.thread.timer_thread import TimerThread
-from edge.util.accuracy import AccuracyCalculator
-from edge.util.data_fetcher import DataFetcher
-from edge.util.edge_broker_publisher import EdgeBrokerPublisher
-from edge.util.forecast_combiner import ForecastCombiner
-from edge.util.platform_sensor_publisher import PlatformSensorPublisher
+from util.accuracy import AccuracyCalculator
+from util.data_fetcher import DataFetcher
+from util.edge_broker_publisher import EdgeBrokerPublisher
+from util.forecast_combiner import ForecastCombiner
+from util.platform_sensor_publisher import PlatformSensorPublisher
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 

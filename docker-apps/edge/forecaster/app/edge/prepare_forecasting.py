@@ -5,8 +5,8 @@ from typing import Any, Dict
 from minio import Minio
 
 from edge.thread.forecaster_thread import ForecasterThread
-from edge.util.data_fetcher import DataFetcher
-from edge.util.platform_sensor_publisher import PlatformSensorPublisher
+from util.data_fetcher import DataFetcher
+from util.platform_sensor_publisher import PlatformSensorPublisher
 
 
 def setup_model(
