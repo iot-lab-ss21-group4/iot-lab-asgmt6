@@ -17,14 +17,11 @@ RUN apt-get update \
            libxml2-dev \
            libffi-dev \
            libssl-dev \
-           zip \
-           unzip \
-           vim \
         # cleanup package lists, they are not used anymore in this image
         && rm -rf /var/lib/apt/lists/* \
         && apt-cache search linux-headers-generic \
         # install additional python modules
-        && pip install --upgrade pip setuptools six && pip install --no-cache-dir -r requirements.txt
+        && pip install --no-cache-dir -r requirements.txt
 
 # Copy and install common requirements
 WORKDIR ${container_app_path}/common

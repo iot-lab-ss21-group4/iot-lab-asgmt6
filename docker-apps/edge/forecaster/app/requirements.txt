@@ -9,3 +9,5 @@ scipy
 pandas
 requests
 paho-mqtt
+matplotlib
+statsmodels
