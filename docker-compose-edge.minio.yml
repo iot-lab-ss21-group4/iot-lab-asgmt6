@@ -1,0 +1,15 @@
+version: '3'
+services:
+
+  minio:
+    image: minio/minio:latest
+    hostname: minio
+    container_name: minio
+    command: server /export
+    environment:
+      MINIO_ROOT_USER: "${MINIO_ROOT_USER}"
+      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD}"
+    volumes:
+      - ./mnt/data:/data
+    ports:
+      - '9000:9000'

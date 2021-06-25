@@ -30,6 +30,8 @@ services:
     command: python main.py --settings-file edge-configuration/settings.json
     volumes:
       - "./edge-configuration:${CONTAINER_APP_PATH}/edge-configuration"
+    environment:
+      PYTHONUNBUFFERED: 1
     depends_on:
       - minio
       - mosquitto
