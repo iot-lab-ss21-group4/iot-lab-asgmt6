@@ -8,12 +8,12 @@ from typing import Deque, Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 from common.iotlab_utils.iotlab_utils.data_manager import TIME_COLUMN
+from iotlab_utils.data_manager import time_series_interpolate
 from util.accuracy import Accuracy, AccuracyCalculator
 from util.data_fetcher import DataFetcher
 from util.edge_broker_publisher import EdgeBrokerPublisher
 from util.forecast_combiner import ForecastCombiner
 from util.platform_sensor_publisher import PlatformSensorPublisher
-from iotlab_utils.data_manager import time_series_interpolate
 
 
 class ForecastEvaluatorThread(threading.Thread):
@@ -142,8 +142,8 @@ class ForecastEvaluatorThread(threading.Thread):
                 for accuracy_metric_name in self.ACCURACY_METRIC_NAMES:
                     accuracy_sensor = self.ACCURACY_SENSOR_PATTERN.format(model_type.upper(), accuracy_metric_name)
                     self.platform_sensor_publisher.publish(accuracy_sensor, t, getattr(accuracy, accuracy_metric_name.lower()))
-                evaluation_rounds[round_index][model_type] = (t, y, accuracy)
 
+            evaluation_rounds[round_index][model_type] = (t, y, accuracy)
             # Check if all models submitted their forecasts for this evaluation round.
             if len(evaluation_rounds[round_index]) >= self.number_of_models:
                 # Note that 't' for all models at this evaluation round must be the same!
