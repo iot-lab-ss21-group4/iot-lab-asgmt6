@@ -99,7 +99,7 @@ def load_data(
             ),
         )
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#successful_responses
-        if 200 < response.status_code < 300:
+        if 200 <= response.status_code < 300:
             break
         sleep(5)
     payload_body: Dict[str, Any] = response.json()["body"]
@@ -115,7 +115,7 @@ def load_data(
                 data=json.dumps({"scroll_id": scroll_id, "scroll": scroll_open_timeout}),
             )
             # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#successful_responses
-            if 200 < response.status_code < 300:
+            if 200 <= response.status_code < 300:
                 break
             sleep(5)
         next_payload_body: Dict[str, Any] = response.json()["body"]
