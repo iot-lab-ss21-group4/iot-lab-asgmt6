@@ -1,12 +1,11 @@
 import logging
 import queue
 import threading
-from typing import Dict, Any, Optional, List
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 import pandas as pd
 from iotlab_utils.data_manager import TIME_COLUMN, time_series_interpolate
-
 from util.accuracy import AccuracyCalculator
 from util.data_fetcher import DataFetcher
 from util.forecast_model_selector import ForecastModelSelector
@@ -45,7 +44,7 @@ class OfflineEvaluatorThread(threading.Thread):
         assert self.REAL_COUNT_SENSOR_TYPE in data_fetchers.keys()
         return data_fetchers
 
-    def interpolate_real_counts_to_forecasts(self, real_counts_df: pd.DataFrame, forecast_df: pd.DataFrame):
+    def interpolate_real_counts_to_forecasts(self, real_counts_df: pd.DataFrame, forecast_df: pd.DataFrame) -> List[int]:
         real_counts = (
             time_series_interpolate(
                 real_counts_df[TIME_COLUMN].to_numpy(),
