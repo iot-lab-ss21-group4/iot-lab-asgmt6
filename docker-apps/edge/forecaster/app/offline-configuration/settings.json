@@ -1,0 +1,39 @@
+{
+  "interval": "day-1",
+  "forecast_model_select_strategy": "select_most_accurate",
+  "iot_platform_mqtt_settings": {
+    "iot_platform_gateway_username": "JWT",
+    "iot_platform_gateway_password": "",
+    "iot_platform_gateway_ip": "131.159.35.132",
+    "iot_platform_gateway_port": 1883,
+    "iot_platform_group_name": "group4_2021_ss",
+    "iot_platform_user_id": 48,
+    "iot_platform_device_id": 137
+  },
+  "iot_platform_consumers": [
+    {
+      "iot_platform_consumer_host": "131.159.35.132",
+      "iot_platform_consumer_key": "",
+      "sensor_type": "real",
+      "sensor_id": 1276
+    },
+    {
+      "iot_platform_consumer_host": "131.159.35.132",
+      "iot_platform_consumer_key": "",
+      "sensor_type": "lstm",
+      "sensor_id": 1395
+    },
+    {
+      "iot_platform_consumer_host": "131.159.35.132",
+      "iot_platform_consumer_key": "",
+      "sensor_type": "lr",
+      "sensor_id": 1396
+    },
+    {
+      "iot_platform_consumer_host": "131.159.35.132",
+      "iot_platform_consumer_key": "",
+      "sensor_type": "sarimax",
+      "sensor_id": 1397
+    }
+  ]
+}

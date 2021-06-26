@@ -27,7 +27,7 @@ services:
     image: "${DOCKER_ID}/iotlab:edge-forecaster"
     hostname: forecaster
     container_name: forecaster
-    command: python main.py --settings-file edge-configuration/settings.json
+    command: python main.py edge --settings-file edge-configuration/settings.json
     volumes:
       - "./edge-configuration:${CONTAINER_APP_PATH}/edge-configuration"
     environment:

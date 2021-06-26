@@ -44,7 +44,7 @@ class AccuracyCalculator:
 
     @staticmethod
     def symmetric_mean_absolute_percentage_error(ys_real: List[int], ys_pred: List[int]) -> float:
-        errors = [200 * abs(y - y_hat) / (y + y_hat) if (y + y_hat) is not 0 else 0 for y, y_hat in zip(ys_real, ys_pred)]
+        errors = [200 * abs(y - y_hat) / (y + y_hat) if (y + y_hat) != 0 else 0 for y, y_hat in zip(ys_real, ys_pred)]
         return sum(errors) / len(errors)
 
     @staticmethod

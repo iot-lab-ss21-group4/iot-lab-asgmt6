@@ -12,6 +12,16 @@ class DataFetcher:
         self.iot_platform_consumer_id = config["iot_platform_consumer_id"]
         self.iot_platform_consumer_key = config["iot_platform_consumer_key"]
 
+    @staticmethod
+    def from_inputs(consumer_host: str, consumer_id: int, consumer_key: str):
+        # TODO: refactor -> maybe from_dict method and constructor with direct arguments
+        config = {
+            "iot_platform_consumer_host": consumer_host,
+            "iot_platform_consumer_id": consumer_id,
+            "iot_platform_consumer_key": consumer_key,
+        }
+        return DataFetcher(config)
+
     def fetch_latest(self, look_back_length: int) -> Tuple[pd.DataFrame, str]:
         if look_back_length <= 0:
             return (
