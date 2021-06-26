@@ -23,7 +23,7 @@ class TimerThread(threading.Thread):
     def run(self):
         while True:
             pred_time = self._now + self.forecast_dt
-            logging.info("Send pred time {} to forecasters.".format(str(pred_time)))
+            logging.info("Send pred time {} to the output event queues.".format(str(pred_time)))
             for q in self.event_out_qs:
                 q.put(pred_time)
             self._now = self._next_forecast_time
