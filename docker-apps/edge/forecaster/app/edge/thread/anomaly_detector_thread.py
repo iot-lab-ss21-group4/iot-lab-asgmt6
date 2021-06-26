@@ -1,7 +1,7 @@
 import logging
 import pickle
-import queue
 import threading
+import time
 from datetime import datetime
 
 import numpy as np
@@ -21,7 +21,6 @@ class AnomalyDetectorThread(threading.Thread):
 
     def __init__(
         self,
-        event_in_q: queue.Queue,
         platform_sensor_publisher: PlatformSensorPublisher,
         data_fetcher: DataFetcher,
         minio_client: Minio,
@@ -30,7 +29,6 @@ class AnomalyDetectorThread(threading.Thread):
         detection_period: int = 3600 * 24,
     ):
         super().__init__()
-        self.anomaly_detector_in_q = event_in_q
         self.platform_sensor_publisher = platform_sensor_publisher
         self.data_fetcher = data_fetcher
         self.minio_client = minio_client
@@ -38,9 +36,12 @@ class AnomalyDetectorThread(threading.Thread):
         self.model_blob_name = model_blob_name
         self.detection_period = detection_period
 
+        self._now = int(time.time())
+        self._next_detection_time = self._now + self.detection_period
+
     def run(self):
         while True:
-            detection_upper_bound = self.anomaly_detector_in_q.get()
+            detection_upper_bound = self._now
             detection_lower_bound = detection_upper_bound - self.detection_period
             try:
                 response: urllib3.HTTPResponse = self.minio_client.get_object(self.model_bucket, self.model_blob_name)
@@ -62,3 +63,8 @@ class AnomalyDetectorThread(threading.Thread):
             ts["is_anomaly"].replace({-1: 1, 1: 0}, inplace=True)
             for t, is_anomaly in ts[[TIME_COLUMN, "is_anomaly"]].itertuples(index=False):
                 self.platform_sensor_publisher.publish(AnomalyDetectorThread.SENSOR_NAME, t, is_anomaly)
+
+            # Wait until the next anomaly detection time
+            self._now = self._next_detection_time
+            self._next_detection_time += self.detection_period
+            time.sleep(max(0.0, self._next_detection_time - time.time()))

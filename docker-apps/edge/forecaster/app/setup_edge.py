@@ -8,6 +8,7 @@ from typing import Any, Dict, List
 
 from edge.minio_client import setup_minio_client
 from edge.prepare_forecasting import setup_model
+from edge.thread.anomaly_detector_thread import AnomalyDetectorThread
 from edge.thread.forecast_evaluator_thread import ForecastEvaluatorThread
 from edge.thread.timer_thread import TimerThread
 from util.accuracy import AccuracyCalculator
@@ -61,6 +62,14 @@ def setup(args: argparse.Namespace):
 
     timer_thread = TimerThread(event_out_qs=forecaster_in_qs)
     all_threads.append(timer_thread)
+
+    anomaly_detector_thread = AnomalyDetectorThread(
+        platform_sensor_publisher=platform_sensor_publisher,
+        data_fetcher=data_fetcher,
+        minio_client=minio_client,
+        **settings["anomaly_detector_settings"],
+    )
+    all_threads.append(anomaly_detector_thread)
 
     for thread in all_threads:
         thread.start()
