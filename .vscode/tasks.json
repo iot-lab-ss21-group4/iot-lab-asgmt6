@@ -20,7 +20,7 @@
 			],
 			"dockerRun": {
 				"image": "iotlab:edge-forecaster",
-				// "command": "python main.py --settings-file edge-configuration/settings.json",
+				// "command": "python main.py edge --settings-file edge-configuration/settings.json",
 				"containerName": "forecaster-debug",
 				"volumes": [
 					{
@@ -32,6 +32,7 @@
 			"python": {
 				"file": "/app/main.py",
 				"args": [
+					"edge",
 					"--settings-file",
 					"edge-configuration/settings.json",
 				]
