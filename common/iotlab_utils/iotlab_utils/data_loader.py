@@ -85,7 +85,7 @@ def load_data(
     if "range" not in query:
         query = {"match_all": {}}
     response = None
-    for i in range(5):
+    while True:
         response = requests.get(
             url=consumer_scroll_api,
             headers=consumer_scroll_api_header,
@@ -98,22 +98,26 @@ def load_data(
                 }
             ),
         )
-        if response.status_code == 200:
+        # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#successful_responses
+        if 200 < response.status_code < 300:
             break
         sleep(5)
-    if response.status_code != 200:
-        raise Exception("Cannot retrieve data from {}. Error Code is: {}".format(consumer_host, response.status_code))
     payload_body: Dict[str, Any] = response.json()["body"]
     scroll_id: str = payload_body["_scroll_id"]
     hits: Dict[str, Any] = payload_body["hits"]
     total_hits: int = hits["total"]
     while len(hits["hits"]) < total_hits and (query_size is None or len(hits["hits"]) < query_size):
-        response = requests.get(
-            url=consumer_scroll_api,
-            headers=consumer_scroll_api_header,
-            verify=False,
-            data=json.dumps({"scroll_id": scroll_id, "scroll": scroll_open_timeout}),
-        )
+        while True:
+            response = requests.get(
+                url=consumer_scroll_api,
+                headers=consumer_scroll_api_header,
+                verify=False,
+                data=json.dumps({"scroll_id": scroll_id, "scroll": scroll_open_timeout}),
+            )
+            # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#successful_responses
+            if 200 < response.status_code < 300:
+                break
+            sleep(5)
         next_payload_body: Dict[str, Any] = response.json()["body"]
         next_hits: Dict[str, Any] = next_payload_body["hits"]
         hits["hits"].extend(next_hits["hits"])
