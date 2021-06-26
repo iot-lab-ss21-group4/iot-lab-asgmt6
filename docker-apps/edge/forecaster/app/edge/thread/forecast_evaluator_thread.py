@@ -142,8 +142,8 @@ class ForecastEvaluatorThread(threading.Thread):
                 for accuracy_metric_name in self.ACCURACY_METRIC_NAMES:
                     accuracy_sensor = self.ACCURACY_SENSOR_PATTERN.format(model_type.upper(), accuracy_metric_name)
                     self.platform_sensor_publisher.publish(accuracy_sensor, t, getattr(accuracy, accuracy_metric_name.lower()))
+                evaluation_rounds[round_index][model_type] = (t, y, accuracy)
 
-            evaluation_rounds[round_index][model_type] = (t, y, accuracy)
             # Check if all models submitted their forecasts for this evaluation round.
             if len(evaluation_rounds[round_index]) >= self.number_of_models:
                 # Note that 't' for all models at this evaluation round must be the same!
