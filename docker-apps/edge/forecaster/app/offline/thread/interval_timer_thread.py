@@ -19,11 +19,12 @@ class IntervalTimerThread(threading.Thread):
         self.interval_length = self.compute_interval_length(interval)
         self.evaluation_time_period = 3600 * 24
 
-        self._next_evaluation_time = time.time() + self.evaluation_time_period
+        self._now = time.time()
+        self._next_evaluation_time = self._now + self.evaluation_time_period
 
     def compute_interval_length(self, interval: str) -> int:
         assert "-" in interval
-        unit, number = interval.split("-")[0], interval.split("-")[1]
+        unit, number = interval.split("-")[:2]
         number = int(number)
         if unit.lower() == UNIT_DAY:
             return 3600 * 24 * number
@@ -33,9 +34,9 @@ class IntervalTimerThread(threading.Thread):
 
     def run(self):
         while True:
-            now = int(time.time())
-            lower_time_bound, upper_time_bound = now - self.interval_length, now
+            lower_time_bound, upper_time_bound = self._now - self.interval_length, self._now
             logging.info("Send interval [{}, {}] to offline evaluation.".format(str(lower_time_bound), str(upper_time_bound)))
             self.event_out_q.put((lower_time_bound, upper_time_bound))
+            self._now = self._next_evaluation_time
             time.sleep(max(0.0, self._next_evaluation_time - time.time()))
             self._next_evaluation_time += self.evaluation_time_period
