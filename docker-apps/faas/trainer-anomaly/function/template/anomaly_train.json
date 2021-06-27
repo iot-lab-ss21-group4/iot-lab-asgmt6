@@ -7,5 +7,5 @@
   "minio_access_key": "...",
   "minio_secret_key": "...",
   "model_bucket": "production-model",
-  "model_blob_name": "lr_model.pk"
+  "model_blob_name": "anomaly.isolation_forest"
 }

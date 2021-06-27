@@ -1,13 +1,13 @@
 {
   "minio_settings": {
-    "minio_host": "localhost",
+    "minio_host": "minio",
     "minio_port": 9000,
     "minio_access_key": "group4",
     "minio_secret_key": ""
   },
   "edge_broker_mqtt_settings": {
     "edge_broker_topic_name": "EDGE_FORECAST",
-    "edge_broker_host": "localhost",
+    "edge_broker_host": "mosquitto",
     "edge_broker_port": 1883
   },
   "iot_platform_mqtt_settings": {

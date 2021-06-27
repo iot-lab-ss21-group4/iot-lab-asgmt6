@@ -1,15 +1,15 @@
 {
-  "iot_platform_consumer_host" : "131.159.35.132",
-  "iot_platform_consumer_id" : 1253,
-  "iot_platform_consumer_key" : "Bearer ey",
-  "minio_host" : "10.195.1.242",
-  "minio_port" : 9000,
-  "minio_access_key" : "",
-  "minio_secret_key" : "",
-  "model_bucket": "test-model",
+  "iot_platform_consumer_host": "131.159.35.132",
+  "iot_platform_consumer_id": 1253,
+  "iot_platform_consumer_key": "Bearer ey",
+  "minio_host": "138.246.235.18",
+  "minio_port": 9000,
+  "minio_access_key": "",
+  "minio_secret_key": "",
+  "model_bucket": "production-model",
   "model_blob_name": "lstm_model.pk",
   "model_config": {
-    "n_features" : 5,
+    "n_features": 5,
     "n_layers": 2,
     "n_hidden": 32,
     "n_outputs": 1,
@@ -20,4 +20,3 @@
     "plot_after_train": false
   }
 }
-

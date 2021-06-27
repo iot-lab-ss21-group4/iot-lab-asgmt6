@@ -1,0 +1,6 @@
+setuptools
+numpy
+optuna
+pandas
+minio
+scikit-learn
