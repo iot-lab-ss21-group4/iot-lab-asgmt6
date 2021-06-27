@@ -43,7 +43,7 @@ class PlatformSensorPublisher:
             + "}"
         )
         logging.info("Publishing '{}' on topic '{}' to platform sensor".format(message, self.topic))
-        self.client.publish(self.topic, message, qos=2)
+        self.client.publish(self.topic, message)
 
 
 def on_connect(client: mqtt.Client, userdata: None, flags: Dict[str, int], rc: int):
