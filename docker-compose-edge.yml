@@ -35,3 +35,13 @@ services:
     depends_on:
       - minio
       - mosquitto
+
+  offline:
+    image: "${DOCKER_ID}/iotlab:edge-forecaster"
+    hostname: offline
+    container_name: offline
+    command: python main.py offline --settings-file offline-configuration/settings.json
+    volumes:
+      - "./offline-configuration:${CONTAINER_APP_PATH}/offline-configuration"
+    environment:
+      PYTHONUNBUFFERED: 1
