@@ -1,7 +1,7 @@
 import logging
 import queue
 import threading
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -16,6 +16,7 @@ class OfflineEvaluatorThread(threading.Thread):
 
     SENSOR_NAME = "bestOffline"
     REAL_COUNT_SENSOR_TYPE = "real"
+    MODEL_PATTERN = "{}-{}"  # id-type
 
     def __init__(
         self,
@@ -28,21 +29,25 @@ class OfflineEvaluatorThread(threading.Thread):
         super().__init__()
         self.evaluator_in_q = event_in_q
         self.platform_sensor_publisher = platform_sensor_publisher
-        self.model_data_fetchers = self.create_data_fetchers(config_consumers)
+        self.model_real, self.model_data_fetchers = self.create_data_fetchers(config_consumers)
         self.accuracy_calculator = accuracy_calculator
         self.forecast_model_selector = forecast_model_selector
         self.y_column: Optional[str] = None
 
-    def create_data_fetchers(self, config_consumers: List[Dict[str, Any]]) -> Dict[str, DataFetcher]:
+    def create_data_fetchers(self, config_consumers: List[Dict[str, Any]]) -> Tuple[str, Dict[str, DataFetcher]]:
         data_fetchers = {}
+        model_real = None
         for config_consumer in config_consumers:
-            model_name, consumer_id = config_consumer["sensor_type"], config_consumer["sensor_id"]
+            sensor_type, sensor_id = config_consumer["sensor_type"], config_consumer["sensor_id"]
             data_fetcher = DataFetcher.from_inputs(
-                config_consumer["iot_platform_consumer_host"], consumer_id, config_consumer["iot_platform_consumer_key"]
+                config_consumer["iot_platform_consumer_host"], sensor_id, config_consumer["iot_platform_consumer_key"]
             )
-            data_fetchers[model_name] = data_fetcher
-        assert self.REAL_COUNT_SENSOR_TYPE in data_fetchers.keys()
-        return data_fetchers
+            data_fetchers[self.MODEL_PATTERN.format(sensor_id, sensor_type)] = data_fetcher
+            if sensor_type == self.REAL_COUNT_SENSOR_TYPE:
+                model_real = self.MODEL_PATTERN.format(sensor_id, sensor_type)
+        assert model_real is not None
+        assert 2 <= len(data_fetchers)
+        return model_real, data_fetchers
 
     def interpolate_real_counts_to_forecasts(self, real_counts_df: pd.DataFrame, forecast_df: pd.DataFrame) -> List[int]:
         real_counts = (
@@ -63,12 +68,12 @@ class OfflineEvaluatorThread(threading.Thread):
             # fetch data
             model_forecast_frames: Dict[str, pd.DataFrame] = {}
             for model, data_fetcher in self.model_data_fetchers.items():
-                if model == self.REAL_COUNT_SENSOR_TYPE:
+                if model == self.model_real:
                     continue
                 targets, _ = data_fetcher.fetch(lower_bound=lower_bound, upper_bound=upper_bound)
                 targets.drop_duplicates(subset=TIME_COLUMN, inplace=True)
                 model_forecast_frames[model] = targets
-            real_counts_df, self.y_column = self.model_data_fetchers[self.REAL_COUNT_SENSOR_TYPE].fetch(
+            real_counts_df, self.y_column = self.model_data_fetchers[self.model_real].fetch(
                 lower_bound=lower_bound, upper_bound=upper_bound
             )
             real_counts_df.drop_duplicates(subset=TIME_COLUMN, inplace=True)
@@ -105,5 +110,5 @@ class OfflineEvaluatorThread(threading.Thread):
 
                 # push the forecasts of the winner to the sensor
                 for _, row in model_forecast_frames[model_winner].iterrows():
-                    t, y = row[TIME_COLUMN], row[self.y_column]
+                    t, y = int(row[TIME_COLUMN]), int(row[self.y_column])
                     self.platform_sensor_publisher.publish(self.SENSOR_NAME, t, y)
