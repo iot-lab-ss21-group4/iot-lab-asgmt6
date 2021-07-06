@@ -18,7 +18,10 @@ def main(params: Dict[str, Any]):
             secure=False,
         )
         data = load_data(
-            params["iot_platform_consumer_host"], params["iot_platform_consumer_id"], params["iot_platform_consumer_key"]
+            params["iot_platform_consumer_host"],
+            params["iot_platform_consumer_id"],
+            params["iot_platform_consumer_key"],
+            post_processing=params["data_post_processing"],
         )
         number_of_training_points = data.shape[0]
         start = time()

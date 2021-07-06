@@ -9,6 +9,7 @@ import requests as requests
 from iotlab_utils.data_manager import DEFAULT_FLOAT_TYPE
 
 from .data_manager import TIME_COLUMN, UNIVARIATE_DATA_COLUMN
+from .data_post_processor import DataPostProcessor
 
 scroll_open_timeout = "1m"
 consumer_scroll_api_template = "https://{}:443/api/consumers/consume/{}/_search?scroll={}"
@@ -25,10 +26,16 @@ def recursive_dict_update(d: Dict, u: Dict) -> Dict:
 
 
 def create_data_frame_from_hits(
-    hits_list: List[Dict[str, Any]], data_range: Iterable[int], is_reversed: bool = False
+    hits_list: List[Dict[str, Any]],
+    data_range: Iterable[int],
+    is_reversed: bool = False,
+    post_processing: List[Dict[str, Any]] = None,
 ) -> pd.DataFrame:
     if is_reversed:
         hits_list = reversed(hits_list)
+    if post_processing is None:
+        post_processing = []
+    data_post_processor = DataPostProcessor(post_processing)
     counts_df = pd.DataFrame(
         {
             TIME_COLUMN: pd.Series(dtype=np.int64, index=data_range),
@@ -39,6 +46,7 @@ def create_data_frame_from_hits(
     for i, hit in zip(data_range, hits_list):
         timestamp_ms, value = hit["_source"]["timestamp"], hit["_source"]["value"]
         # Filter / Change ts values here
+        value = data_post_processor.apply(timestamp_ms, value)
         counts_df.loc[i] = [int(np.floor(timestamp_ms / 1000)), value]
 
     return counts_df
@@ -52,6 +60,7 @@ def load_data(
     upper_bound: Optional[int] = None,
     query_size: Optional[int] = None,
     query_time_order: str = "asc",
+    post_processing: List[Dict[str, Any]] = None,
 ) -> pd.DataFrame:
     """
     Uses the scroll API to get all data from an index.
@@ -126,7 +135,7 @@ def load_data(
 
     hits_list: List[Dict[str, Any]] = hits["hits"] if query_size is None else hits["hits"][:query_size]
     data_range = range(len(hits_list))
-    return create_data_frame_from_hits(hits_list, data_range, query_time_order == "desc")
+    return create_data_frame_from_hits(hits_list, data_range, query_time_order == "desc", post_processing)
 
 
 def load_latest_data(consumer_host: str, consumer_id: int, consumer_key: str, latest_entries: int) -> pd.DataFrame:
