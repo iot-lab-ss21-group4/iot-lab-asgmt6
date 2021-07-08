@@ -71,5 +71,5 @@ class AnomalyDetectorThread(threading.Thread):
 
             # Wait until the next anomaly detection time
             self._now = self._next_detection_time
-            self._next_detection_time += self.detection_period
             time.sleep(max(0.0, self._next_detection_time - time.time()))
+            self._next_detection_time += self.detection_period
