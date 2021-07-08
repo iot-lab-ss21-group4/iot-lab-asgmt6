@@ -156,7 +156,6 @@ class StudentCountPredictor(nn.Module):
         return ts.loc[ts.index[self.look_back_length :], [TIME_COLUMN, self.y_column]]
 
     def plot_after_train(self, ts: pd.DataFrame):
-        # TODO: will be removed after some testing
         all_target = ts[[self.y_column]]
         self.forecast(ts, update_lag1_count=True)
         all_pred = pd.Series(ts[[self.y_column]].values.reshape(-1), index=all_target.index, name="predicted_count")
