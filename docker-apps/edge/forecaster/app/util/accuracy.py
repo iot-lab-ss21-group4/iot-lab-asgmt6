@@ -21,7 +21,7 @@ class AccuracyCalculator:
         return Accuracy(
             mae=AccuracyCalculator.mean_absolute_error(real_counts, forecasts),
             rmse=AccuracyCalculator.root_mean_squared_error(real_counts, forecasts),
-            mape=AccuracyCalculator.root_mean_squared_error(real_counts, forecasts),
+            mape=AccuracyCalculator.mean_absolute_percentage_error(real_counts, forecasts),
             smape=AccuracyCalculator.symmetric_mean_absolute_percentage_error(real_counts, forecasts),
             mase=AccuracyCalculator.mean_absolute_scaled_error(real_counts, forecasts),
             ias=AccuracyCalculator.interval_accuracy_score(real_counts, forecasts, self.ias_quantile, self.ias_sig_alpha),
