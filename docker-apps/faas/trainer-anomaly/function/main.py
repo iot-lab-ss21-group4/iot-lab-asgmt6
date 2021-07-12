@@ -23,11 +23,12 @@ def main(params: Dict[str, Any]):
             secret_key=params["minio_secret_key"],
             secure=False,
         )
+        data_post_processing = params["data_post_processing"] if "data_post_processing" in params else []
         ts = load_data(
             params["iot_platform_consumer_host"],
             params["iot_platform_consumer_id"],
             params["iot_platform_consumer_key"],
-            post_processing=params["data_post_processing"],
+            post_processing=data_post_processing,
         )
         y_column, x_columns, ts, useless_rows = prepare_data_with_features(
             ts, detailed_seasonality=False, extra_features=False

@@ -17,11 +17,12 @@ def main(params: Dict[str, Any]):
             secret_key=params["minio_secret_key"],
             secure=False,
         )
+        data_post_processing = params["data_post_processing"] if "data_post_processing" in params else []
         data = load_data(
             params["iot_platform_consumer_host"],
             params["iot_platform_consumer_id"],
             params["iot_platform_consumer_key"],
-            post_processing=params["data_post_processing"],
+            post_processing=data_post_processing,
         )
         number_of_training_points = data.shape[0]
         start = time()
