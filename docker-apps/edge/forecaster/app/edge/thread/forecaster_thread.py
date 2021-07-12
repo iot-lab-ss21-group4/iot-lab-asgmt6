@@ -40,6 +40,7 @@ class ForecasterThread(threading.Thread):
     def run(self):
         while True:
             pred_time = self.forecaster_in_q.get()
+            forecast_value = 0
             try:
                 response: urllib3.HTTPResponse = self.minio_client.get_object(self.model_bucket, self.model_blob_name)
                 # Pickle protocol version is the latest available for ibmfunctions/action-python-v3.7:master
@@ -48,15 +49,22 @@ class ForecasterThread(threading.Thread):
                 response.close()
                 response.release_conn()
 
-            # Get the latest look back data for the forecast model.
-            logging.info("{}: Get latest look back data. In total: {}".format(self.model_type, model_fit.look_back_length))
-            latest_data, y_column = self.data_fetcher.fetch_latest(model_fit.look_back_length)
-            model_fit.update_look_back_buffer(latest_data)
+            try:
+                # Get the latest look back data for the forecast model.
+                logging.info("{}: Get latest look back data. In total: {}".format(self.model_type, model_fit.look_back_length))
+                latest_data, y_column = self.data_fetcher.fetch_latest(model_fit.look_back_length)
+                model_fit.update_look_back_buffer(latest_data)
 
-            # Calculate the next prediction time.
-            forecast_data = model_fit.forecast(pd.DataFrame({TIME_COLUMN: [pred_time], y_column: [DEFAULT_FLOAT_TYPE()]}))
-            forecast_value = int(forecast_data.loc[forecast_data.index[-1], y_column])
-            forecast_value = min(45, max(0, forecast_value))
+                # Calculate the next prediction time.
+                forecast_data = model_fit.forecast(pd.DataFrame({TIME_COLUMN: [pred_time], y_column: [DEFAULT_FLOAT_TYPE()]}))
+                if len(forecast_data.index) <= 0:
+                    # if forecast model fails to forecast use 0 by default
+                    forecast_data.append({TIME_COLUMN: pred_time, y_column: 0})
+                forecast_value = int(forecast_data.loc[forecast_data.index[-1], y_column])
+                forecast_value = min(45, max(0, forecast_value))
+            except Exception as e:
+                # catch exception to avoid breaking logic in forecast evaluator which always expects forecast value
+                logging.error("{}: Forecasting failed! Reason: {}".format(self.model_type, str(e)))
 
             # publish forecast result
             self.platform_sensor_publisher.publish(self.sensor_name, pred_time, forecast_value)
