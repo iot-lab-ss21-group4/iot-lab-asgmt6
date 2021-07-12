@@ -10,6 +10,11 @@ from iotlab_utils.data_manager import prepare_data_with_features
 from sklearn.preprocessing import MinMaxScaler
 from torch.utils.data import DataLoader, Dataset
 
+pd.options.mode.chained_assignment = None
+
+PREDICTION_COUNT_LOWER_BOUND = 0
+PREDICTION_COUNT_HIGHER_BOUND = 45
+
 
 class TimeseriesDataset(Dataset):
     def __init__(self, X: np.ndarray, y: np.ndarray, seq_len: int = 1):
@@ -29,8 +34,8 @@ class StudentCountPredictor(nn.Module):
     x_columns = ["lag1_count", "dT", "minute_of_day", "day_of_week", "month_of_year"]
     y_column = UNIVARIATE_DATA_COLUMN
     useless_rows = 1
-    prediction_count_lower_bound = 0
-    prediction_count_higher_bound = 45
+    prediction_count_lower_bound = PREDICTION_COUNT_LOWER_BOUND
+    prediction_count_higher_bound = PREDICTION_COUNT_HIGHER_BOUND
 
     def __init__(self, config: Dict[str, Any], look_back_buffer: Optional[pd.DataFrame] = None):
         super().__init__()
@@ -97,6 +102,10 @@ class StudentCountPredictor(nn.Module):
         self.scaler_count = MinMaxScaler(feature_range=(0, 1))
         self.scaler_count.fit(ts[[self.y_column]])
 
+        # for later post processing
+        self.scaled_count_min = self.scaler_count.transform([[self.prediction_count_lower_bound]])[0][0]
+        self.scaled_count_max = self.scaler_count.transform([[self.prediction_count_higher_bound]])[0][0]
+
     def scale_data(self, ts: pd.DataFrame):
         ts.loc[:, self.x_columns] = self.scaler_features.transform(ts.loc[:, self.x_columns])
         ts.loc[:, [self.y_column]] = self.scaler_count.transform(ts.loc[:, [self.y_column]])
@@ -118,15 +127,27 @@ class StudentCountPredictor(nn.Module):
 
     def predict_single(self, sequence: th.Tensor) -> float:
         prediction = self(sequence).item()
-        if prediction < self.prediction_count_lower_bound:
-            prediction = self.prediction_count_lower_bound
-        if self.prediction_count_higher_bound < prediction:
-            prediction = self.prediction_count_higher_bound
+        if prediction < self.scaled_count_min:
+            prediction = self.scaled_count_min
+        if self.scaled_count_max < prediction:
+            prediction = self.scaled_count_max
         return prediction
 
-    def forecast(self, ts: pd.DataFrame, update_lag1_count: bool = True) -> pd.DataFrame:
-        ts = pd.concat([self.look_back_buffer, ts], axis=0)
-        ts.reset_index(drop=True, inplace=True)
+    def forecast(self, ts: pd.DataFrame, update_lag1_count: bool = True, use_look_back_buffer: bool = True) -> pd.DataFrame:
+        """
+        Forecast method of LSTM.
+        On the edge it will use the look back buffer, i.e. the last values for new prediction(s).
+        Note that for evaluation of training and testing updating lag1 count should be switched off otherwise the
+        prediction error will progress too much and distort the result.
+        Note that for evaluation of training and testing we do not need the look back buffer.
+        :param ts: dataframe for which the rows should be filled with forecast values for the count column
+        :param update_lag1_count: Update also the lag1_count column of the rows.
+        :param use_look_back_buffer: Use the look back buffer, i.e. the last (predicted) count to make reasonable prediction for new value(s)
+        :return: pandas frame with forecasted values
+        """
+        if use_look_back_buffer:
+            ts = pd.concat([self.look_back_buffer, ts], axis=0)
+            ts.reset_index(drop=True, inplace=True)
         _, _, ts, _ = prepare_data_with_features(ts)
         self.scale_data(ts)
 
@@ -153,30 +174,67 @@ class StudentCountPredictor(nn.Module):
 
         self.inverse_data(ts)
         ts[self.y_column] = ts[self.y_column].round()
-        return ts.loc[ts.index[self.look_back_length :], [TIME_COLUMN, self.y_column]]
 
-    def plot_after_train(self, ts: pd.DataFrame):
-        all_target = ts[[self.y_column]]
-        self.forecast(ts, update_lag1_count=True)
-        all_pred = pd.Series(ts[[self.y_column]].values.reshape(-1), index=all_target.index, name="predicted_count")
-        all_target.index.freq = None
-        all_pred.index.freq = None
-        all_target.plot(legend=True)
-        all_pred.plot(legend=True, linestyle="dotted")
+        if use_look_back_buffer:
+            return ts.loc[ts.index[self.look_back_length :], [TIME_COLUMN, self.y_column]]
+        return ts[[TIME_COLUMN, self.y_column]]
+
+    def plot(self, ts_real: pd.DataFrame, ts_forecast: pd.DataFrame):
+        real_counts = ts_real[[self.y_column]]
+        forecasts = pd.Series(ts_forecast[[self.y_column]].values.reshape(-1), index=real_counts.index, name="predicted_count")
+        real_counts.index.freq = None
+        forecasts.index.freq = None
+        real_counts.plot(legend=True)
+        forecasts.plot(legend=True, linestyle="dotted")
         plt.show()
 
 
 def train(ts: pd.DataFrame, config: Dict[str, Any]):
+    # remove anomalies making training result bad
+    ts.loc[ts[UNIVARIATE_DATA_COLUMN] > PREDICTION_COUNT_HIGHER_BOUND][UNIVARIATE_DATA_COLUMN] = PREDICTION_COUNT_HIGHER_BOUND
+    ts.loc[ts[UNIVARIATE_DATA_COLUMN] < PREDICTION_COUNT_LOWER_BOUND][UNIVARIATE_DATA_COLUMN] = PREDICTION_COUNT_LOWER_BOUND
+
+    # split for testing if ratio is given
+    train_test_ratio = 1.0
+    if "train_test_ratio" in config:
+        train_test_ratio = config["train_test_ratio"]
+
+    splitter = int(train_test_ratio * len(ts))
+    train_ts = ts[:splitter]
+    test_ts = ts[splitter:]
+
+    # train
     model = StudentCountPredictor(config)
-    model.update_look_back_buffer(ts.loc[ts.index[-model.look_back_length :], [TIME_COLUMN, model.y_column]])
-    dataset = model.prepare_data(ts)
+    model.update_look_back_buffer(train_ts.loc[train_ts.index[-model.look_back_length :], [TIME_COLUMN, model.y_column]])
+    dataset = model.prepare_data(train_ts.copy(deep=True))
     dataloader = DataLoader(
-        dataset, batch_size=8, persistent_workers=config["persistent_workers"], num_workers=config["n_workers"]
+        dataset,
+        batch_size=config["batch_size"],
+        persistent_workers=config["persistent_workers"],
+        num_workers=config["n_workers"],
     )
     for epoch in range(config["n_epochs"]):
         for train_batch in dataloader:
             loss = model.general_step(train_batch)
             model.optimize(loss)
-    if config["plot_after_train"]:
-        model.plot_after_train(ts)
+
+    # evaluate
+    if config["evaluation"]:
+        forecast_ts = model.forecast(train_ts, update_lag1_count=config["update_lag1_count"], use_look_back_buffer=False)
+        # compute accuracy for seen forecasts
+
+        # we need at least the look back length + 1 for testing
+        if model.look_back_length + 1 <= len(test_ts.index):
+            unseen_forecast_ts = model.forecast(
+                test_ts, update_lag1_count=config["update_lag1_count"], use_look_back_buffer=False
+            )
+            # compute accuracy for unseen forecasts
+            forecast_ts = forecast_ts.append(unseen_forecast_ts, ignore_index=True)
+        # else we need to remove the not used test points from the test set
+        else:
+            ts = ts[: -len(test_ts.index) or None]
+
+        _, _, ts, _ = prepare_data_with_features(ts)
+        model.plot(ts, forecast_ts)
+
     return model
