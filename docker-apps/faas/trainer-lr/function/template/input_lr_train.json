@@ -1,48 +1,11 @@
 {
   "iot_platform_consumer_host": "131.159.35.132",
-  "iot_platform_consumer_id": 1276,
-  "iot_platform_consumer_key": "Bearer ey...",
+  "iot_platform_consumer_id": 1253,
+  "iot_platform_consumer_key": "Bearer ",
   "minio_host": "138.246.235.18",
   "minio_port": 9000,
-  "minio_access_key": "...",
-  "minio_secret_key": "...",
+  "minio_access_key": "",
+  "minio_secret_key": "",
   "model_bucket": "production-model",
-  "model_blob_name": "lr_model.pk",
-  "data_post_processing": [
-    {
-      "lower_bound": 1622118241339,
-      "upper_bound": 1622316840685,
-      "delta": -2
-    },
-    {
-      "lower_bound": 1622117297735,
-      "upper_bound": 1622316840685,
-      "delta": -1
-    },
-    {
-      "lower_bound": 1622486863610,
-      "upper_bound": 1622494964316,
-      "delta": -9
-    },
-    {
-      "lower_bound": 1622739901267,
-      "upper_bound": 1622753402641,
-      "delta": -1
-    },
-    {
-      "lower_bound": 1622805315044,
-      "upper_bound": 1622824216936,
-      "delta": -3
-    },
-    {
-      "lower_bound": 1623229206700,
-      "upper_bound": 1623271461863,
-      "delta": -1
-    },
-    {
-      "lower_bound": 1625496107969,
-      "upper_bound": 1625566826162,
-      "delta": -8
-    }
-  ]
+  "model_blob_name": "lr_model.pk"
 }
