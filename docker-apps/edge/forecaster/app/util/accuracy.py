@@ -1,3 +1,4 @@
+import logging
 from math import sqrt
 from typing import List, NamedTuple
 
@@ -18,6 +19,12 @@ class AccuracyCalculator:
         self.ias_sig_alpha = 0.05
 
     def compute_accuracy_metrics(self, real_counts: List[int], forecasts: List[int]):
+        if len(real_counts) != len(forecasts):
+            logging.warning("Real counts and forecasts have not same size! Return 0 accuracy")
+            return Accuracy(mae=0, rmse=0, mape=0, smape=0, mase=0, ias=0)
+        if len(real_counts) == 0:
+            logging.warning("Lists are empty! Return 0 accuracy")
+            return Accuracy(mae=0, rmse=0, mape=0, smape=0, mase=0, ias=0)
         return Accuracy(
             mae=AccuracyCalculator.mean_absolute_error(real_counts, forecasts),
             rmse=AccuracyCalculator.root_mean_squared_error(real_counts, forecasts),
@@ -39,7 +46,7 @@ class AccuracyCalculator:
 
     @staticmethod
     def mean_absolute_percentage_error(ys_real: List[int], ys_pred: List[int]) -> float:
-        errors = [abs(100 * (y - y_hat) / y_hat) for y, y_hat in zip(ys_real, ys_pred)]
+        errors = [abs(100 * (y - y_hat) / y_hat) if y_hat != 0 else 0 for y, y_hat in zip(ys_real, ys_pred)]
         return sum(errors) / len(errors)
 
     @staticmethod
