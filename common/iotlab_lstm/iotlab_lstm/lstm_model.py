@@ -8,6 +8,8 @@ import torch.nn as nn
 from common.iotlab_utils.iotlab_utils.data_manager import TIME_COLUMN, UNIVARIATE_DATA_COLUMN
 from iotlab_utils.data_manager import prepare_data_with_features
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_squared_error
 from torch.utils.data import DataLoader, Dataset
 
 pd.options.mode.chained_assignment = None
@@ -188,8 +190,15 @@ class StudentCountPredictor(nn.Module):
         forecasts.plot(legend=True, linestyle="dotted")
         plt.show()
 
+def compute_accuracy(real_ts: pd.DataFrame, forecast_ts: pd.DataFrame):
+    print(mean_absolute_error(real_ts[[UNIVARIATE_DATA_COLUMN]], forecast_ts[[UNIVARIATE_DATA_COLUMN]]))
+    print(mean_squared_error(real_ts[[UNIVARIATE_DATA_COLUMN]], forecast_ts[[UNIVARIATE_DATA_COLUMN]], squared=False))
 
 def train(ts: pd.DataFrame, config: Dict[str, Any]):
+
+    # remove duplicates
+    ts.drop_duplicates(subset=TIME_COLUMN, inplace=True)
+
     # remove anomalies making training result bad
     ts.loc[ts[UNIVARIATE_DATA_COLUMN] > PREDICTION_COUNT_HIGHER_BOUND][UNIVARIATE_DATA_COLUMN] = PREDICTION_COUNT_HIGHER_BOUND
     ts.loc[ts[UNIVARIATE_DATA_COLUMN] < PREDICTION_COUNT_LOWER_BOUND][UNIVARIATE_DATA_COLUMN] = PREDICTION_COUNT_LOWER_BOUND
@@ -220,8 +229,10 @@ def train(ts: pd.DataFrame, config: Dict[str, Any]):
 
     # evaluate
     if config["evaluation"]:
+
         forecast_ts = model.forecast(train_ts, update_lag1_count=config["update_lag1_count"], use_look_back_buffer=False)
         # compute accuracy for seen forecasts
+        compute_accuracy(ts[:splitter], forecast_ts)
 
         # we need at least the look back length + 1 for testing
         if model.look_back_length + 1 <= len(test_ts.index):
@@ -229,7 +240,9 @@ def train(ts: pd.DataFrame, config: Dict[str, Any]):
                 test_ts, update_lag1_count=config["update_lag1_count"], use_look_back_buffer=False
             )
             # compute accuracy for unseen forecasts
+            compute_accuracy(ts[splitter:], forecast_ts)
             forecast_ts = forecast_ts.append(unseen_forecast_ts, ignore_index=True)
+
         # else we need to remove the not used test points from the test set
         else:
             ts = ts[: -len(test_ts.index) or None]
