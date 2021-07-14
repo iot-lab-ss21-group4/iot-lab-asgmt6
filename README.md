@@ -33,6 +33,6 @@
 * If you set up a container network using one of the compose files specify the file by using `-f` in the docker-compose command
 * There are several docker-compose files
 * `docker-compose-edge.yml`: File for containers deployment on the edge. Note that _forecaster_ and _offline_ use both the edge-forecaster image
-* `docker-compose-edge.dev.yml`: File to setup necessary containers for local development
+* `docker-compose-edge.dev.yml`: File to setup necessary containers for local development. Consider that the containers are then reachable over localhost and not by using their container name in the network.
 * `docker-compose-edge.integration.yml`: File to setup necessary containers for integration test
 * `docker-compose-edge.minio.yml`: File to setup a minio container
